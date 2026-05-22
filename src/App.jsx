@@ -3,55 +3,55 @@ import { useState, useEffect, useRef, useCallback } from "react";
 /* ═══════════════════════════════════════════════════════════
    CONFIGURATION — edit per presentation
 ═══════════════════════════════════════════════════════════ */
-const SESSION = "demo2024";
+const SESSION = "demo2026";
 const TOPICS = [
-  "Zero-shot prompting","RAG pipelines","Token limits","Embedding models",
-  "Fine-tuning basics","Chain-of-thought","Hallucinations","System prompts",
-  "RLHF training","Tool calling","Semantic search","Vector databases",
-  "Model quantization","Prompt injection","Temperature param",
-  "Multimodal AI","Agent loops","Structured outputs",
-  "Batch inference","Retrieval-Aug. Gen","Eval frameworks",
-  "Inference costs","Open-source LLMs","Safety alignment",
+  "Zero-shot prompting", "RAG pipelines", "Token limits", "Embedding models",
+  "Fine-tuning basics", "Chain-of-thought", "Hallucinations", "System prompts",
+  "RLHF training", "Tool calling", "Semantic search", "Vector databases",
+  "Model quantization", "Prompt injection", "Temperature param",
+  "Multimodal AI", "Agent loops", "Structured outputs",
+  "Batch inference", "Retrieval-Aug. Gen", "Eval frameworks",
+  "Inference costs", "Open-source LLMs", "Safety alignment",
 ];
 /* ═══════════════════════════════════════════════════════════ */
 
 const FREE = 12;
 const LINES = [
-  [0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],
-  [0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],
-  [0,6,12,18,24],[4,8,12,16,20],
+  [0, 1, 2, 3, 4], [5, 6, 7, 8, 9], [10, 11, 12, 13, 14], [15, 16, 17, 18, 19], [20, 21, 22, 23, 24],
+  [0, 5, 10, 15, 20], [1, 6, 11, 16, 21], [2, 7, 12, 17, 22], [3, 8, 13, 18, 23], [4, 9, 14, 19, 24],
+  [0, 6, 12, 18, 24], [4, 8, 12, 16, 20],
 ];
 const LINE_NAMES = [
-  "Row 1","Row 2","Row 3","Row 4","Row 5",
-  "Col B","Col I","Col N","Col G","Col O",
-  "Diagonal ↘","Diagonal ↙",
+  "Row 1", "Row 2", "Row 3", "Row 4", "Row 5",
+  "Col B", "Col I", "Col N", "Col G", "Col O",
+  "Diagonal ↘", "Diagonal ↙",
 ];
 const RATES = [
-  { id:"new",     icon:"🚀", label:"New to me",         color:"#ef4444" },
-  { id:"partial", icon:"💡", label:"Partly familiar",   color:"#f59e0b" },
-  { id:"knew",    icon:"⭐", label:"Already knew this", color:"#22c55e" },
+  { id: "new", icon: "🚀", label: "New to me", color: "#ef4444" },
+  { id: "partial", icon: "💡", label: "Partly familiar", color: "#f59e0b" },
+  { id: "knew", icon: "⭐", label: "Already knew this", color: "#22c55e" },
 ];
 
 const shuffle = a => {
   const b = [...a];
-  for (let i=b.length-1; i>0; i--) {
-    const j = Math.floor(Math.random()*(i+1));
-    [b[i],b[j]] = [b[j],b[i]];
+  for (let i = b.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [b[i], b[j]] = [b[j], b[i]];
   }
   return b;
 };
-const mkBoard = () => { const s=shuffle(TOPICS); return [...s.slice(0,12),"FREE",...s.slice(12)]; };
-const getLines = m => LINES.filter(l => l.every(i => i===FREE || !!m[i]));
+const mkBoard = () => { const s = shuffle(TOPICS); return [...s.slice(0, 12), "FREE", ...s.slice(12)]; };
+const getLines = m => LINES.filter(l => l.every(i => i === FREE || !!m[i]));
 
-const makeMock = () => ["Alice","Bob","Cara","Dev","Emma","Frank"].map(name => {
+const makeMock = () => ["Alice", "Bob", "Cara", "Dev", "Emma", "Frank"].map(name => {
   const board = mkBoard();
   const marks = {};
-  let c=0, n=4+Math.floor(Math.random()*8);
-  for (let i=0; i<25&&c<n; i++) {
-    if (i===FREE) continue;
-    if (Math.random()>.48) { marks[i]=RATES[Math.floor(Math.random()*3)].id; c++; }
+  let c = 0, n = 4 + Math.floor(Math.random() * 8);
+  for (let i = 0; i < 25 && c < n; i++) {
+    if (i === FREE) continue;
+    if (Math.random() > .48) { marks[i] = RATES[Math.floor(Math.random() * 3)].id; c++; }
   }
-  return { id:`${name}_mock`, name, board, marks };
+  return { id: `${name}_mock`, name, board, marks };
 });
 
 /* ─── CSS ─── */
@@ -211,16 +211,16 @@ html,body{background:var(--bg);min-height:100vh;font-family:var(--fnt);color:var
    ROOT APP
 ═══════════════════════════════════════════════════════════ */
 export default function App() {
-  const [screen, setScreen]   = useState("lobby");
-  const [name,   setName]     = useState("");
-  const [board,  setBoard]    = useState([]);
-  const [marks,  setMarks]    = useState({});
-  const [pending,setPending]  = useState(null);
-  const [pr,     setPr]       = useState(null);  // pending rating
-  const [subs,   setSubs]     = useState([]);    // submitted bingo line indices
-  const [livePl, setLivePl]   = useState([]);    // players from BroadcastChannel / WS
-  const [mockPl]              = useState(makeMock);
-  const [valid,  setValid]    = useState({});
+  const [screen, setScreen] = useState("lobby");
+  const [name, setName] = useState("");
+  const [board, setBoard] = useState([]);
+  const [marks, setMarks] = useState({});
+  const [pending, setPending] = useState(null);
+  const [pr, setPr] = useState(null);  // pending rating
+  const [subs, setSubs] = useState([]);    // submitted bingo line indices
+  const [livePl, setLivePl] = useState([]);    // players from BroadcastChannel / WS
+  const [mockPl] = useState(makeMock);
+  const [valid, setValid] = useState({});
   const ch = useRef(null);
 
   // ── BroadcastChannel (same-device multi-tab demo) ──
@@ -233,17 +233,17 @@ export default function App() {
         if (data.t === "ps") {
           setLivePl(prev => {
             const i = prev.findIndex(p => p.id === data.p.id);
-            if (i >= 0) { const a=[...prev]; a[i]=data.p; return a; }
+            if (i >= 0) { const a = [...prev]; a[i] = data.p; return a; }
             return [...prev, data.p];
           });
         }
       };
       return () => c.close();
-    } catch (_) {}
+    } catch (_) { }
   }, []);
 
   const send = useCallback((b, m) => {
-    ch.current?.postMessage({ t:"ps", p:{ id:`${name}_${SESSION}`, name, board:b||board, marks:m||marks } });
+    ch.current?.postMessage({ t: "ps", p: { id: `${name}_${SESSION}`, name, board: b || board, marks: m || marks } });
   }, [name, board, marks]);
 
   // ── Actions ──
@@ -271,9 +271,9 @@ export default function App() {
 
   const cancelModal = () => { setPending(null); setPr(null); };
 
-  const lines  = getLines(marks);
+  const lines = getLines(marks);
   const bingoSq = new Set(lines.flat());
-  const allPl  = [...mockPl, ...livePl];
+  const allPl = [...mockPl, ...livePl];
 
   return (
     <>
@@ -298,7 +298,7 @@ export default function App() {
                 Get My Board →
               </button>
               <div className="sep" />
-              <button className="btn bg" style={{ width:"100%" }} onClick={() => setScreen("host")}>
+              <button className="btn bg" style={{ width: "100%" }} onClick={() => setScreen("host")}>
                 📊 Host Dashboard
               </button>
             </div>
@@ -327,11 +327,11 @@ export default function App() {
                   const inBingo = bingoSq.has(i);
                   const ri = RATES.find(x => x.id === r);
                   let cls = "sq";
-                  if (isFree)          cls += " sqF";
-                  else if (r==="new")  cls += " sqN";
-                  else if (r==="partial") cls += " sqP";
-                  else if (r==="knew") cls += " sqK";
-                  if (inBingo)         cls += " sqB";
+                  if (isFree) cls += " sqF";
+                  else if (r === "new") cls += " sqN";
+                  else if (r === "partial") cls += " sqP";
+                  else if (r === "knew") cls += " sqK";
+                  if (inBingo) cls += " sqB";
                   return (
                     <div key={i} className={cls} onClick={() => clickSq(i)}>
                       {!isFree && ri && <div className="sqe">{ri.icon}</div>}
@@ -345,20 +345,20 @@ export default function App() {
               <div className="prow">
                 <span>{Object.keys(marks).length}/24 marked</span>
                 {lines.length > 0 && (
-                  <span style={{ color:"var(--pi)" }}>
+                  <span style={{ color: "var(--pi)" }}>
                     ✦ {lines.length} bingo{lines.length > 1 ? "s" : ""}
                   </span>
                 )}
               </div>
               <div className="pbar">
-                <div className="pfil" style={{ width:`${Object.keys(marks).length/24*100}%` }} />
+                <div className="pfil" style={{ width: `${Object.keys(marks).length / 24 * 100}%` }} />
               </div>
 
               {/* Legend */}
               <div className="leg">
                 {RATES.map(r => (
                   <div key={r.id} className="lgi">
-                    <div className="lgd" style={{ background:r.color }} />
+                    <div className="lgd" style={{ background: r.color }} />
                     {r.icon} {r.label}
                   </div>
                 ))}
@@ -371,17 +371,17 @@ export default function App() {
                   <div className="bsub2">Select a completed line to notify the host</div>
                   <div className="ll">
                     {lines.map((line, idx) => {
-                      const li = LINES.findIndex(l => l.every((v,j) => v === line[j]));
+                      const li = LINES.findIndex(l => l.every((v, j) => v === line[j]));
                       const done = subs.includes(li);
                       return (
                         <div key={idx} className={`litem${done ? " done" : ""}`}>
                           <span style={{ color: done ? "var(--rk)" : "var(--tx)" }}>
-                            {LINE_NAMES[li] || `Bingo ${idx+1}`}
+                            {LINE_NAMES[li] || `Bingo ${idx + 1}`}
                           </span>
                           <button
                             className="btn bg bsm"
                             disabled={done}
-                            style={done ? { color:"var(--rk)", borderColor:"var(--rk)" } : {}}
+                            style={done ? { color: "var(--rk)", borderColor: "var(--rk)" } : {}}
                             onClick={() => setSubs(p => [...p, li])}
                           >
                             {done ? "✓ Submitted" : "Submit →"}
@@ -393,7 +393,7 @@ export default function App() {
                 </div>
               )}
 
-              <div style={{ marginTop:16 }}>
+              <div style={{ marginTop: 16 }}>
                 <button className="btn bg bsm" onClick={() => setScreen("lobby")}>
                   ← Leave
                 </button>
@@ -449,8 +449,8 @@ export default function App() {
    HOST DASHBOARD
 ═══════════════════════════════════════════════════════════ */
 function HostView({ players, valid, setValid, onExit }) {
-  const total  = players.reduce((s,p) => s + Object.keys(p.marks).length, 0);
-  const bPl    = players.filter(p => getLines(p.marks).length > 0);
+  const total = players.reduce((s, p) => s + Object.keys(p.marks).length, 0);
+  const bPl = players.filter(p => getLines(p.marks).length > 0);
 
   // Aggregate knowledge per topic across all players
   const topicMap = {};
@@ -458,17 +458,17 @@ function HostView({ players, valid, setValid, onExit }) {
     for (const [k, v] of Object.entries(p.marks)) {
       const t = p.board[+k];
       if (!t || t === "FREE") continue;
-      if (!topicMap[t]) topicMap[t] = { new:0, partial:0, knew:0 };
+      if (!topicMap[t]) topicMap[t] = { new: 0, partial: 0, knew: 0 };
       topicMap[t][v] = (topicMap[t][v] || 0) + 1;
     }
   }
   const topicStats = Object.entries(topicMap)
     .map(([t, c]) => ({
       t,
-      n: c.new||0, p: c.partial||0, k: c.knew||0,
-      tot: (c.new||0)+(c.partial||0)+(c.knew||0)
+      n: c.new || 0, p: c.partial || 0, k: c.knew || 0,
+      tot: (c.new || 0) + (c.partial || 0) + (c.knew || 0)
     }))
-    .sort((a,b) => b.tot - a.tot)
+    .sort((a, b) => b.tot - a.tot)
     .slice(0, 14);
 
   return (
@@ -487,15 +487,15 @@ function HostView({ players, valid, setValid, onExit }) {
       {/* KPIs */}
       <div className="krow">
         <div className="kpi">
-          <div className="knum" style={{ color:"var(--a)" }}>{players.length}</div>
+          <div className="knum" style={{ color: "var(--a)" }}>{players.length}</div>
           <div className="klbl">Players joined</div>
         </div>
         <div className="kpi">
-          <div className="knum" style={{ color:"var(--rp)" }}>{total}</div>
+          <div className="knum" style={{ color: "var(--rp)" }}>{total}</div>
           <div className="klbl">Topics marked</div>
         </div>
         <div className="kpi">
-          <div className="knum" style={{ color:"var(--pi)" }}>{bPl.length}</div>
+          <div className="knum" style={{ color: "var(--pi)" }}>{bPl.length}</div>
           <div className="klbl">Bingos claimed</div>
         </div>
       </div>
@@ -504,9 +504,9 @@ function HostView({ players, valid, setValid, onExit }) {
       <div className="sh">Live players</div>
       <div className="pg">
         {players.length === 0 ? (
-          <div className="empty" style={{ gridColumn:"1/-1" }}>
+          <div className="empty" style={{ gridColumn: "1/-1" }}>
             Waiting for players to join…<br />
-            <span style={{ fontSize:9 }}>Open a new tab and join as a player to test</span>
+            <span style={{ fontSize: 9 }}>Open a new tab and join as a player to test</span>
           </div>
         ) : players.map(p => {
           const mc = Object.keys(p.marks).length;
@@ -515,7 +515,7 @@ function HostView({ players, valid, setValid, onExit }) {
             <div key={p.id} className="pc">
               <div className="pn">{p.name}</div>
               <div className="mg">
-                {Array.from({ length:25 }, (_, i) => {
+                {Array.from({ length: 25 }, (_, i) => {
                   const f = i === FREE;
                   const r = p.marks[i];
                   let cls = "ms";
@@ -526,7 +526,7 @@ function HostView({ players, valid, setValid, onExit }) {
               </div>
               <div className="ps">
                 <span>{mc}/24</span>
-                {bl > 0 && <span style={{ color:"var(--pi)" }}>✦×{bl}</span>}
+                {bl > 0 && <span style={{ color: "var(--pi)" }}>✦×{bl}</span>}
               </div>
             </div>
           );
@@ -537,10 +537,10 @@ function HostView({ players, valid, setValid, onExit }) {
       {topicStats.length > 0 && (
         <>
           <div className="sh">Knowledge breakdown</div>
-          <div className="leg" style={{ marginBottom:10 }}>
-            {[["var(--rn)","🚀","New to me"],["var(--rp)","💡","Partly familiar"],["var(--rk)","⭐","Already knew"]].map(([c,e,l]) => (
+          <div className="leg" style={{ marginBottom: 10 }}>
+            {[["var(--rn)", "🚀", "New to me"], ["var(--rp)", "💡", "Partly familiar"], ["var(--rk)", "⭐", "Already knew"]].map(([c, e, l]) => (
               <div key={l} className="lgi">
-                <div className="lgd" style={{ background:c }}/>{e} {l}
+                <div className="lgd" style={{ background: c }} />{e} {l}
               </div>
             ))}
           </div>
@@ -549,9 +549,9 @@ function HostView({ players, valid, setValid, onExit }) {
               <div key={t} className="kbrow">
                 <div className="kbtl">{t}</div>
                 <div className="kbtr">
-                  {n>0 && <div className="kbseg" style={{ width:`${n/tot*100}%`, background:"var(--rn)" }}/>}
-                  {p>0 && <div className="kbseg" style={{ width:`${p/tot*100}%`, background:"var(--rp)" }}/>}
-                  {k>0 && <div className="kbseg" style={{ width:`${k/tot*100}%`, background:"var(--rk)" }}/>}
+                  {n > 0 && <div className="kbseg" style={{ width: `${n / tot * 100}%`, background: "var(--rn)" }} />}
+                  {p > 0 && <div className="kbseg" style={{ width: `${p / tot * 100}%`, background: "var(--rp)" }} />}
+                  {k > 0 && <div className="kbseg" style={{ width: `${k / tot * 100}%`, background: "var(--rk)" }} />}
                 </div>
                 <div className="kbcnt">{tot}</div>
               </div>
