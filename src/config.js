@@ -1,5 +1,6 @@
 const pathSegment = window.location.pathname.split("/").filter(Boolean)[0];
 export const SESSION = pathSegment || "demo2026";
+export const AT_ROOT = !pathSegment;
 
 export const TOPICS = [
   "Zero-shot prompting", "RAG pipelines", "Token limits", "Embedding models",
