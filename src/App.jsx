@@ -74,7 +74,7 @@ export default function App() {
           revealedTopics={revealedTopics}
           onMark={handleMark}
           onSubmitBingo={li => setSubs(p => [...p, li])}
-          onLeave={() => setScreen("lobby")}
+          onLeave={() => window.location.href = "/"}
         />
       )}
       {screen === "host" && (
@@ -86,7 +86,7 @@ export default function App() {
           onReset={resetGame}
           onSetTopics={setSessionTopics}
           onDelete={deleteSession}
-          onExit={() => setScreen("lobby")}
+          onExit={() => window.location.href = "/"}
         />
       )}
     </div>

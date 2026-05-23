@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import QRCode from "qrcode";
-import { LayoutDashboard, ArrowRight, RefreshCcw, X, LogIn } from "lucide-react";
+import { LayoutDashboard, ArrowRight, RefreshCcw, X, LogIn, Loader2 } from "lucide-react";
 import { SESSION, AT_ROOT, TOPICS } from "../config";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../hooks/useTheme";
@@ -85,10 +85,11 @@ export default function Lobby({ name, setName, onJoin, onHostView }) {
 
       <div className="flex flex-col items-center justify-center min-h-[90vh] gap-7 w-full max-w-[400px]">
         <div>
+          <div className="font-display font-black text-[22px] tracking-[8px] text-tx leading-none text-center pl-2 uppercase">Presentation</div>
           <div className="font-display font-black text-[64px] sm:text-[72px] tracking-[14px] sm:tracking-[16px] text-accent leading-none text-center pl-3">BINGO</div>
-          <div className="text-[10px] tracking-[4px] text-mu uppercase text-center -mt-1.5">
-            {AT_ROOT ? "presentation edition" : `presentation edition · ${SESSION}`}
-          </div>
+          {!AT_ROOT && (
+            <div className="font-mono text-sm text-tx/60 text-center mt-2 tracking-wide">/{SESSION}</div>
+          )}
         </div>
 
         {AT_ROOT ? (
@@ -97,7 +98,10 @@ export default function Lobby({ name, setName, onJoin, onHostView }) {
               <div className="bg-s1 border border-b1 rounded-2xl p-5 w-full flex flex-col gap-3">
                 <div className="text-[9.5px] tracking-[2px] text-mu uppercase">Active sessions</div>
                 {sessionsLoading ? (
-                  <div className="text-[11px] text-mu">Loading…</div>
+                  <div className="flex items-center gap-2 text-mu py-1">
+                    <Loader2 size={14} className="animate-spin" />
+                    <span className="text-[11px]">Loading…</span>
+                  </div>
                 ) : sessions.map(s => (
                   <div key={s.id} className="flex items-center justify-between bg-s2 border border-b1 rounded-lg px-3 py-2">
                     <div>
@@ -176,6 +180,16 @@ export default function Lobby({ name, setName, onJoin, onHostView }) {
                 Create Session <ArrowRight size={16} />
               </button>
             </div>
+
+            <a
+              href="https://github.com/joelbreit/bingo-app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-[10px] text-mu hover:text-tx transition-colors"
+            >
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+              joelbreit/bingo-app
+            </a>
           </>
         ) : (
           <div className="bg-s1 border border-b1 rounded-2xl p-5 w-full flex flex-col gap-3.5">

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, ArrowRight, Sparkles, Check } from "lucide-react";
 import confetti from "canvas-confetti";
-import { FREE, RATES, LINES, LINE_NAMES, getLines } from "../config";
+import { FREE, SESSION, RATES, LINES, LINE_NAMES, getLines } from "../config";
 import KnowledgeModal from "./KnowledgeModal";
 import RateIcon from "./RateIcon";
 import ThemeToggle from "./ThemeToggle";
@@ -49,11 +49,20 @@ export default function Board({ name, board, marks, subs, players, revealedTopic
     <>
       <div className="w-full max-w-[560px]">
         <div className="flex justify-between items-center py-2 pb-3.5">
-          <div className="font-display font-black text-xl tracking-[8px] text-accent">BINGO</div>
+          <div>
+            <div className="font-display font-black text-xl tracking-[8px] text-accent">BINGO</div>
+            <div className="font-mono text-[11px] text-tx/50 tracking-wide mt-0.5">/{SESSION}</div>
+          </div>
           <div className="flex items-center gap-2">
             <div className="bg-s1 border border-b1 rounded-full px-3 py-1 text-[10px] text-mu">
               Playing as <b className="text-tx">{name}</b>
             </div>
+            <button
+              onClick={onLeave}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-b1 text-[10px] text-mu hover:text-tx hover:border-b2"
+            >
+              <ArrowLeft size={11} /> Lobby
+            </button>
             <ThemeToggle />
           </div>
         </div>
@@ -171,14 +180,6 @@ export default function Board({ name, board, marks, subs, players, revealedTopic
           </div>
         )}
 
-        <div className="mt-4">
-          <button
-            onClick={onLeave}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] rounded-lg border border-b1 text-mu hover:text-tx hover:border-b2"
-          >
-            <ArrowLeft size={12} /> Leave
-          </button>
-        </div>
       </div>
 
       {pending != null && (

@@ -41,7 +41,7 @@ export default function KnowledgeModal({ topic, selectedRating, initialNote = ""
           <span className="block text-[9.5px] tracking-[2px] uppercase text-mu mb-1.5">Note (optional)</span>
           <textarea
             className="w-full bg-s2 border border-b1 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none rounded-lg px-3 py-2 text-[13px] leading-snug resize-y min-h-[64px]"
-            placeholder="Add a quick thought…"
+            placeholder="Any comments?"
             value={note}
             onChange={e => setNote(e.target.value)}
             rows={2}

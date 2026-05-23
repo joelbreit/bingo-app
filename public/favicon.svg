@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Dark background with rounded corners -->
+  <rect width="512" height="512" rx="90" fill="#0a0a0f"/>
+
+  <!--
+    5×5 grid: square=72, gap=15, padding=46
+    Column x positions: 46, 133, 220, 307, 394
+    Row y positions:    46, 133, 220, 307, 394
+    Diagonal (top-left → bottom-right): (0,0)(1,1)(2,2)(3,3)(4,4) — bright green
+    Center (2,2): pink FREE square
+    Scatter a few dim-green tiles for visual texture
+  -->
+
+  <!-- Row 0 -->
+  <rect x="46"  y="46"  width="72" height="72" rx="10" fill="#10b981"/>
+  <rect x="133" y="46"  width="72" height="72" rx="10" fill="#1e1e27"/>
+  <rect x="220" y="46"  width="72" height="72" rx="10" fill="#10b981" opacity=".30"/>
+  <rect x="307" y="46"  width="72" height="72" rx="10" fill="#1e1e27"/>
+  <rect x="394" y="46"  width="72" height="72" rx="10" fill="#1e1e27"/>
+
+  <!-- Row 1 -->
+  <rect x="46"  y="133" width="72" height="72" rx="10" fill="#1e1e27"/>
+  <rect x="133" y="133" width="72" height="72" rx="10" fill="#10b981"/>
+  <rect x="220" y="133" width="72" height="72" rx="10" fill="#1e1e27"/>
+  <rect x="307" y="133" width="72" height="72" rx="10" fill="#10b981" opacity=".30"/>
+  <rect x="394" y="133" width="72" height="72" rx="10" fill="#1e1e27"/>
+
+  <!-- Row 2 — center / FREE -->
+  <rect x="46"  y="220" width="72" height="72" rx="10" fill="#10b981" opacity=".30"/>
+  <rect x="133" y="220" width="72" height="72" rx="10" fill="#1e1e27"/>
+  <rect x="220" y="220" width="72" height="72" rx="10" fill="#e879f9"/>
+  <rect x="307" y="220" width="72" height="72" rx="10" fill="#1e1e27"/>
+  <rect x="394" y="220" width="72" height="72" rx="10" fill="#10b981" opacity=".30"/>
+
+  <!-- Row 3 -->
+  <rect x="46"  y="307" width="72" height="72" rx="10" fill="#1e1e27"/>
+  <rect x="133" y="307" width="72" height="72" rx="10" fill="#10b981" opacity=".30"/>
+  <rect x="220" y="307" width="72" height="72" rx="10" fill="#1e1e27"/>
+  <rect x="307" y="307" width="72" height="72" rx="10" fill="#10b981"/>
+  <rect x="394" y="307" width="72" height="72" rx="10" fill="#1e1e27"/>
+
+  <!-- Row 4 -->
+  <rect x="46"  y="394" width="72" height="72" rx="10" fill="#1e1e27"/>
+  <rect x="133" y="394" width="72" height="72" rx="10" fill="#1e1e27"/>
+  <rect x="220" y="394" width="72" height="72" rx="10" fill="#10b981" opacity=".30"/>
+  <rect x="307" y="394" width="72" height="72" rx="10" fill="#1e1e27"/>
+  <rect x="394" y="394" width="72" height="72" rx="10" fill="#10b981"/>
+</svg>
