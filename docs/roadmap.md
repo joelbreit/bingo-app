@@ -1,55 +1,57 @@
 # Roadmap
 
+## Phase 0 — Cleanup (do first)
+
+Upfront refactoring that will make all subsequent phases faster and less error-prone.
+
+- [ ] **Extract `config.js`** — move `SESSION`, `TOPICS`, `RATES`, `LINES`, `LINE_NAMES`, `FREE` out of `App.jsx` into `src/config.js`. `SESSION` will later become URL-derived; isolating it now makes that a one-line change.
+- [ ] **Abstract the transport layer** — create `src/hooks/useSession.js`, a custom hook that wraps the current `BroadcastChannel` logic and exposes `{ players, sendState }`. Swapping in WebSocket in Phase 1 then only touches this one file.
+- [ ] **Split into components** — extract `Lobby`, `Board`, `HostView`, and `KnowledgeModal` into `src/components/`. Each phase touches a different screen; separate files eliminate merge-style conflicts when editing.
+- [ ] **Extract CSS** — move the CSS template literal to `src/index.css` and import it normally. Keeps component files focused on logic.
+
 ## Phase 1 — Real-time Multiplayer Backend
 
-Replace the current `BroadcastChannel` (same-device only) with a WebSocket server so players on different devices can connect.
+Replace `BroadcastChannel` with a serverless WebSocket backend so players on different devices can connect.
 
-- [ ] Set up a Node.js WebSocket server (e.g. `ws` or `socket.io`) that manages sessions by ID
-- [ ] Add session join/leave events and player state broadcast
-- [ ] Update `App.jsx` to connect via WebSocket instead of `BroadcastChannel`
-- [ ] Deploy server alongside the frontend (EC2, Fly.io, or AWS App Runner)
+**Architecture:** API Gateway WebSocket API → Lambda → DynamoDB
 
-## Phase 2 — URL-based Sessions
+- [ ] **DynamoDB table** — `connections` table with `connectionId` (PK), `sessionId` (GSI), and full player state (`name`, `board`, `marks`)
+- [ ] **SAM template** — define the WebSocket API, three Lambda functions, and the DynamoDB table as infrastructure-as-code
+- [ ] **`$connect` Lambda** — store `connectionId` + `sessionId` (from query string) in DynamoDB
+- [ ] **`$disconnect` Lambda** — remove the connection record from DynamoDB
+- [ ] **`playerUpdate` Lambda** — write incoming player state to DynamoDB, then fan out to all other `connectionId`s in the session via the API Gateway Management API
+- [ ] **Update `useSession.js`** — swap `BroadcastChannel` for a `WebSocket` pointing at the API Gateway URL; keep the same `{ players, sendState }` interface so no other file changes
 
-Make sessions shareable via URL so players can just tap a link on their phone.
+## Phase 2 — URL-based Sessions & Deployment
 
-- [ ] Add React Router (or use `window.location`) to parse session ID from the path (e.g. `/demo2026`)
-- [ ] Auto-populate `SESSION` from the URL param instead of the hardcoded constant
-- [ ] Host generates a session and shares a QR code / link
-- [ ] Set up `bingo.joelbreit.com` on AWS Amplify with wildcard routing
+Make sessions shareable via link and get the app live.
+
+- [ ] Parse session ID from the URL path (`/demo2026`) using `window.location` — no router needed
+- [ ] Read `SESSION` from the URL in `config.js` with a hardcoded fallback for local dev
+- [ ] Deploy frontend to AWS Amplify at `bingo.joelbreit.com` with a catch-all rewrite rule
+- [ ] Host generates a session ID and shares a QR code / short link from the lobby
 
 ## Phase 3 — Host Session Control
 
 Give the host tools to manage the game in real time.
 
-- [ ] Host creates/starts a session from a dedicated host page (with password or join code)
-- [ ] Host can reveal topics one-by-one as they're covered in the presentation (rather than showing all upfront)
+- [ ] Host creates a session from the lobby (generates a session ID + optional join code)
+- [ ] Host can reveal topics one-by-one as they're covered (topics stored in DynamoDB session record, pushed to players)
 - [ ] Host can reset the game or clear all marks
-- [ ] Bingo submission notification pushes to host automatically (rather than polling)
+- [ ] Bingo submissions are pushed to the host automatically via WebSocket (no polling)
 
 ## Phase 4 — Configurable Topics
 
 Allow the host to customize topics without editing source code.
 
-- [ ] Build a pre-session topic editor UI (textarea or drag-and-drop list)
-- [ ] Persist topics to the server session so all players get the same topic pool
-- [ ] Support more/fewer than 24 topics (adjust board size or pool randomly)
+- [ ] Topic editor UI in the host lobby (textarea or list)
+- [ ] Topics stored in the DynamoDB session record and sent to players on join
+- [ ] Support variable topic counts (pool size > 24; board draws 24 randomly)
 
 ## Phase 5 — Polish & UX
 
-Small improvements that make the experience feel complete.
-
-- [ ] Mobile QR code scanner shortcut on the lobby screen
-- [ ] Confetti animation when a player gets bingo
-- [ ] Player disconnect/reconnect handling (rejoin with same board preserved)
-- [ ] Host view: click a player's mini-board to see their full board in a modal
-- [ ] Accessibility pass (keyboard nav, ARIA labels, focus management)
-
-## Phase 6 — Code Quality
-
-Refactor as the app grows beyond a single file.
-
-- [ ] Split `App.jsx` into separate components (`Lobby`, `Board`, `HostView`, `KnowledgeModal`)
-- [ ] Extract CSS into a `.css` file or use CSS Modules
-- [ ] Add ESLint + Prettier
-- [ ] Add Vitest unit tests for `shuffle`, `mkBoard`, `getLines`
+- [ ] Confetti animation on bingo
+- [ ] Player disconnect/reconnect — rejoin restores same board from DynamoDB
+- [ ] Host view: click a mini-board to see the player's full board in a modal
+- [ ] QR code display on the lobby screen
+- [ ] Accessibility pass (keyboard nav, ARIA labels)

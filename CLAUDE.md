@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Documentation
+
+- [`docs/roadmap.md`](docs/roadmap.md) — phased feature plan (Phase 0 cleanup → Phase 5 polish)
+- [`docs/cloud.md`](docs/cloud.md) — AWS architecture, DynamoDB schema, SAM template skeleton, logging/tagging standards
+- [`docs/dev.md`](docs/dev.md) — setup, local dev, deploying the backend, viewing AWS resources and logs
+
 ## Commands
 
 ```bash
