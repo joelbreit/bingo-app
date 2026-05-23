@@ -15,12 +15,12 @@ Replace `BroadcastChannel` with a serverless WebSocket backend so players on dif
 
 **Architecture:** API Gateway WebSocket API → Lambda → DynamoDB
 
-- [ ] **DynamoDB table** — `connections` table with `connectionId` (PK), `sessionId` (GSI), and full player state (`name`, `board`, `marks`)
-- [ ] **SAM template** — define the WebSocket API, three Lambda functions, and the DynamoDB table as infrastructure-as-code
-- [ ] **`$connect` Lambda** — store `connectionId` + `sessionId` (from query string) in DynamoDB
-- [ ] **`$disconnect` Lambda** — remove the connection record from DynamoDB
-- [ ] **`playerUpdate` Lambda** — write incoming player state to DynamoDB, then fan out to all other `connectionId`s in the session via the API Gateway Management API
-- [ ] **Update `useSession.js`** — swap `BroadcastChannel` for a `WebSocket` pointing at the API Gateway URL; keep the same `{ players, sendState }` interface so no other file changes
+- [x] **DynamoDB table** — `connections` table with `connectionId` (PK), `sessionId` (GSI), and full player state (`name`, `board`, `marks`)
+- [x] **SAM template** — define the WebSocket API, three Lambda functions, and the DynamoDB table as infrastructure-as-code
+- [x] **`$connect` Lambda** — store `connectionId` + `sessionId` (from query string) in DynamoDB
+- [x] **`$disconnect` Lambda** — remove the connection record from DynamoDB
+- [x] **`playerUpdate` Lambda** — write incoming player state to DynamoDB, then fan out to all other `connectionId`s in the session via the API Gateway Management API
+- [x] **Update `useSession.js`** — swap `BroadcastChannel` for a `WebSocket` pointing at the API Gateway URL; keep the same `{ players, sendState }` interface so no other file changes
 
 ## Phase 2 — URL-based Sessions & Deployment
 

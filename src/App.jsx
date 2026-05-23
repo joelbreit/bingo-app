@@ -12,8 +12,8 @@ export default function App() {
   const [marks, setMarks] = useState({});
   const [subs, setSubs] = useState([]);
 
-  const { players: livePl, sendState } = useSession();
-  const [mockPl] = useState(makeMock);
+  const { players: livePl, sendState, isLive } = useSession();
+  const [mockPl] = useState(() => isLive ? [] : makeMock());
   const allPl = [...mockPl, ...livePl];
 
   const join = () => {
