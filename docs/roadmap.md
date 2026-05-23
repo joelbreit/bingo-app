@@ -44,9 +44,9 @@ Give the host tools to manage the game in real time.
 
 Allow the host to customize topics without editing source code.
 
-- [ ] Topic editor UI in the host lobby (textarea or list)
-- [ ] Topics stored in the DynamoDB session record and sent to players on join
-- [ ] Support variable topic counts (pool size > 24; board draws 24 randomly)
+- [x] Topic editor UI in the host lobby (textarea or list)
+- [x] Topics stored in the DynamoDB session record and sent to players on join
+- [x] Support variable topic counts (pool size > 24; board draws 24 randomly)
 
 ## Phase 5 — Polish & UX
 

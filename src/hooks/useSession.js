@@ -3,9 +3,15 @@ import { SESSION } from "../config";
 
 const WS_URL = import.meta.env.VITE_WS_URL;
 
-export function useSession(onReset) {
+export function useSession(onReset, topicsToSet) {
   const [players, setPlayers] = useState([]);
   const [revealedTopics, setRevealedTopics] = useState(null);
+  const [topics, setTopics] = useState(() => {
+    // BC mode: read custom topics from localStorage immediately (same device)
+    if (WS_URL) return null;
+    const stored = localStorage.getItem(`bingo-topics-${SESSION}`);
+    return stored ? JSON.parse(stored) : null;
+  });
   const conn = useRef(null);
   const revealedRef = useRef(null);
   const onResetRef = useRef(onReset);
@@ -18,6 +24,7 @@ export function useSession(onReset) {
 
       ws.onopen = () => {
         console.log("[ws] connected");
+        if (topicsToSet) ws.send(JSON.stringify({ t: "setTopics", topics: topicsToSet }));
         ws.send(JSON.stringify({ t: "getState" }));
       };
       ws.onmessage = ({ data }) => {
@@ -26,6 +33,7 @@ export function useSession(onReset) {
           setPlayers(msg.players);
           revealedRef.current = msg.revealedTopics ?? null;
           setRevealedTopics(msg.revealedTopics ?? null);
+          if (msg.topics) setTopics(msg.topics);
           if (msg.reset) onResetRef.current?.();
         }
       };
@@ -60,7 +68,7 @@ export function useSession(onReset) {
       };
       return () => c.close();
     } catch (_) {}
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sendState = useCallback((player) => {
     const c = conn.current;
@@ -75,15 +83,13 @@ export function useSession(onReset) {
   const revealTopic = useCallback((topicOrTopics) => {
     const c = conn.current;
     if (!c) return;
-    const topics = Array.isArray(topicOrTopics) ? topicOrTopics : [topicOrTopics];
+    const ts = Array.isArray(topicOrTopics) ? topicOrTopics : [topicOrTopics];
     if (c.type === "ws" && c.ws.readyState === WebSocket.OPEN) {
-      c.ws.send(JSON.stringify({ t: "reveal", topics }));
+      c.ws.send(JSON.stringify({ t: "reveal", topics: ts }));
     } else if (c.type === "bc") {
       const list = revealedRef.current || [];
       const updated = [...list];
-      for (const t of topics) {
-        if (!updated.includes(t)) updated.push(t);
-      }
+      for (const t of ts) { if (!updated.includes(t)) updated.push(t); }
       revealedRef.current = updated;
       setRevealedTopics(updated);
       c.bc.postMessage({ t: "revealed", topics: updated });
@@ -104,5 +110,5 @@ export function useSession(onReset) {
     }
   }, []);
 
-  return { players, revealedTopics, sendState, revealTopic, resetGame, isLive: !!WS_URL };
+  return { players, topics, revealedTopics, sendState, revealTopic, resetGame, isLive: !!WS_URL };
 }

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { FREE, SESSION, TOPICS, getLines } from "../config";
+import { FREE, SESSION, TOPICS as DEFAULT_TOPICS, getLines } from "../config";
 
-export default function HostView({ players, revealedTopics, onRevealTopic, onReset, onExit }) {
+export default function HostView({ players, topics, revealedTopics, onRevealTopic, onReset, onExit }) {
+  const TOPICS = topics || DEFAULT_TOPICS;
   const [valid, setValid] = useState({});
 
   const total = players.reduce((s, p) => s + Object.keys(p.marks).length, 0);

@@ -41,8 +41,10 @@ const shuffle = a => {
   return b;
 };
 
-export const mkBoard = () => {
-  const s = shuffle(TOPICS);
+// topics: custom pool; if >24, 24 are drawn randomly so boards vary across players
+export const mkBoard = (topics = null) => {
+  const pool = topics && topics.length >= 24 ? topics : TOPICS;
+  const s = shuffle(pool).slice(0, 24);
   return [...s.slice(0, 12), "FREE", ...s.slice(12)];
 };
 

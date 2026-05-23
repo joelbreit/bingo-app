@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, QueryCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, UpdateCommand, QueryCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { ApiGatewayManagementApiClient, PostToConnectionCommand } from "@aws-sdk/client-apigatewaymanagementapi";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient());
@@ -28,6 +28,16 @@ async function getSessionRecord(sessionId) {
   return Item;
 }
 
+// UpdateCommand so individual session fields don't overwrite each other
+async function updateSession(sessionId, expression, values) {
+  await ddb.send(new UpdateCommand({
+    TableName: TABLE,
+    Key: { connectionId: `session#${sessionId}` },
+    UpdateExpression: `SET ${expression}, sessionId = :_sid`,
+    ExpressionAttributeValues: { ...values, ":_sid": sessionId },
+  }));
+}
+
 async function broadcastTo(connections, message, event) {
   const endpoint = `https://${event.requestContext.domainName}/${event.requestContext.stage}`;
   const apigw = new ApiGatewayManagementApiClient({ endpoint });
@@ -35,10 +45,7 @@ async function broadcastTo(connections, message, event) {
 
   await Promise.all(connections.map(async (conn) => {
     try {
-      await apigw.send(new PostToConnectionCommand({
-        ConnectionId: conn.connectionId,
-        Data: data,
-      }));
+      await apigw.send(new PostToConnectionCommand({ ConnectionId: conn.connectionId, Data: data }));
     } catch (err) {
       if (err.$metadata?.httpStatusCode === 410) {
         await ddb.send(new DeleteCommand({ TableName: TABLE, Key: { connectionId: conn.connectionId } }));
@@ -64,6 +71,11 @@ export const handler = async (event) => {
     }));
   }
 
+  // ── Host sets custom topics ──
+  if (body.t === "setTopics" && Array.isArray(body.topics) && body.topics.length >= 24) {
+    await updateSession(sessionId, "topics = :t", { ":t": body.topics });
+  }
+
   // ── Host reveals topic(s) ──
   if (body.t === "reveal" && body.topics) {
     const session = await getSessionRecord(sessionId);
@@ -71,18 +83,12 @@ export const handler = async (event) => {
     for (const t of body.topics) {
       if (t && !revealed.includes(t)) revealed.push(t);
     }
-    await ddb.send(new PutCommand({
-      TableName: TABLE,
-      Item: { connectionId: `session#${sessionId}`, sessionId, revealedTopics: revealed },
-    }));
+    await updateSession(sessionId, "revealedTopics = :rt", { ":rt": revealed });
   }
 
-  // ── Host resets the game ──
+  // ── Host resets the game (topics are preserved) ──
   if (body.t === "reset") {
-    await ddb.send(new PutCommand({
-      TableName: TABLE,
-      Item: { connectionId: `session#${sessionId}`, sessionId, revealedTopics: [] },
-    }));
+    await updateSession(sessionId, "revealedTopics = :empty", { ":empty": [] });
     const connections = await getConnections(sessionId);
     await Promise.all(connections.map(conn =>
       ddb.send(new UpdateCommand({
@@ -91,7 +97,10 @@ export const handler = async (event) => {
         UpdateExpression: "REMOVE playerState",
       }))
     ));
-    await broadcastTo(connections, { t: "players", players: [], revealedTopics: [], reset: true }, event);
+    const session = await getSessionRecord(sessionId);
+    await broadcastTo(connections, {
+      t: "players", players: [], revealedTopics: [], topics: session?.topics || null, reset: true,
+    }, event);
     console.log(JSON.stringify({ action: "reset", connectionId, sessionId }));
     return { statusCode: 200, body: "OK" };
   }
@@ -105,6 +114,7 @@ export const handler = async (event) => {
     t: "players",
     players,
     revealedTopics: session?.revealedTopics || null,
+    topics: session?.topics || null,
   }, event);
 
   console.log(JSON.stringify({
