@@ -48,6 +48,9 @@ html,body{background:var(--bg);min-height:100vh;font-family:var(--fnt);color:var
   font-size:10px;color:var(--mu)}
 .chip b{color:var(--tx)}
 
+.pnames{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.plbl{font-size:9px;color:var(--mu);flex-shrink:0}
+
 /* ── GRID ── */
 .bingo-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
 .sq{aspect-ratio:1;background:var(--s1);border:1px solid var(--b1);border-radius:6px;

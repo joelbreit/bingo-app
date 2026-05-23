@@ -166,10 +166,43 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${BingoApi}/*/$default"
 
+  # ── HTTP API (session listing) ──
+  BingoHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowMethods:
+          - GET
+          - OPTIONS
+        AllowHeaders:
+          - "*"
+
+  ListSessionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: bingo-list-sessions
+      Handler: listSessions.handler
+      CodeUri: src/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+      Events:
+        GetSessions:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BingoHttpApi
+            Path: /sessions
+            Method: GET
+
 Outputs:
   WebSocketUrl:
     Description: WebSocket endpoint for the frontend
     Value: !Sub "wss://${BingoApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  HttpApiUrl:
+    Description: HTTP API endpoint for session listing
+    Value: !Sub "https://${BingoHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
   TableName:
     Description: DynamoDB table name
     Value: !Ref ConnectionsTable

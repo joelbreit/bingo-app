@@ -18,14 +18,24 @@ sam deploy \
   --tags "project=presentation-bingo" \
   --no-confirm-changeset
 
-# Pull the WebSocket URL from stack outputs and write to .env.local
+# Pull outputs from stack and write to .env.local
 WS_URL=$(aws cloudformation describe-stacks \
   --stack-name "$STACK_NAME" \
   --query "Stacks[0].Outputs[?OutputKey=='WebSocketUrl'].OutputValue" \
   --output text)
 
-echo "VITE_WS_URL=${WS_URL}" > "$PROJECT_DIR/.env.local"
+HTTP_URL=$(aws cloudformation describe-stacks \
+  --stack-name "$STACK_NAME" \
+  --query "Stacks[0].Outputs[?OutputKey=='HttpApiUrl'].OutputValue" \
+  --output text)
+
+{
+  echo "VITE_WS_URL=${WS_URL}"
+  echo "VITE_API_URL=${HTTP_URL}"
+} > "$PROJECT_DIR/.env.local"
 
 echo ""
-echo "Done! WebSocket URL: ${WS_URL}"
+echo "Done!"
+echo "  WebSocket URL: ${WS_URL}"
+echo "  HTTP API URL:  ${HTTP_URL}"
 echo "Written to .env.local — restart 'npm run dev' to pick it up."

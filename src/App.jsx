@@ -22,7 +22,7 @@ export default function App() {
     setSubs([]);
   }, []);
 
-  const { players: livePl, topics, revealedTopics, sendState, revealTopic, resetGame, isLive } =
+  const { players: livePl, topics, revealedTopics, sendState, revealTopic, resetGame, setSessionTopics, isLive } =
     useSession(handleReset, topicsToSet);
 
   const [mockPl] = useState(() => isLive ? [] : makeMock());
@@ -61,6 +61,7 @@ export default function App() {
           board={board}
           marks={marks}
           subs={subs}
+          players={allPl}
           revealedTopics={revealedTopics}
           onMark={handleMark}
           onSubmitBingo={li => setSubs(p => [...p, li])}
@@ -74,6 +75,7 @@ export default function App() {
           revealedTopics={revealedTopics}
           onRevealTopic={revealTopic}
           onReset={resetGame}
+          onSetTopics={setSessionTopics}
           onExit={() => setScreen("lobby")}
         />
       )}

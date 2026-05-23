@@ -29,12 +29,15 @@ async function getSessionRecord(sessionId) {
 }
 
 // UpdateCommand so individual session fields don't overwrite each other
+// Rolling 8-hour TTL keeps the session visible in the listing while active
 async function updateSession(sessionId, expression, values) {
+  const ttl = Math.floor(Date.now() / 1000) + 28800;
   await ddb.send(new UpdateCommand({
     TableName: TABLE,
     Key: { connectionId: `session#${sessionId}` },
-    UpdateExpression: `SET ${expression}, sessionId = :_sid`,
-    ExpressionAttributeValues: { ...values, ":_sid": sessionId },
+    UpdateExpression: `SET ${expression}, sessionId = :_sid, #t = :ttl`,
+    ExpressionAttributeNames: { "#t": "ttl" },
+    ExpressionAttributeValues: { ...values, ":_sid": sessionId, ":ttl": ttl },
   }));
 }
 

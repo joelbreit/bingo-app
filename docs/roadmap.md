@@ -48,10 +48,22 @@ Allow the host to customize topics without editing source code.
 - [x] Topics stored in the DynamoDB session record and sent to players on join
 - [x] Support variable topic counts (pool size > 24; board draws 24 randomly)
 
+## Phase 4.1 - Session State
+
+- [x] The lobby should show a list of existing sessions (dynamically loaded)
+- [x] The lobby should show the number of players in a session
+- [x] The lobby should not allow sessions to be created if the session ID is already in use
+  - [x] Users can still join and can still host
+  - [x] If there is a host code, they will need it in order to rejoin as a host (already in place)
+- [x] Host should be able to edit the topics for a session
+- [x] The players should be able to see other players names
+
 ## Phase 5 — Polish & UX
 
+- [ ] Improve look on mobile devices
+- [ ] Dark/Light mode
 - [ ] Confetti animation on bingo
 - [ ] Player disconnect/reconnect — rejoin restores same board from DynamoDB
 - [ ] Host view: click a mini-board to see the player's full board in a modal
-- [ ] QR code display on the lobby screen
-- [ ] Accessibility pass (keyboard nav, ARIA labels)
+- [ ] Allow players to add note to a square response
+- [x] QR code display on the lobby screen

@@ -1,9 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FREE, SESSION, TOPICS as DEFAULT_TOPICS, getLines } from "../config";
 
-export default function HostView({ players, topics, revealedTopics, onRevealTopic, onReset, onExit }) {
+export default function HostView({ players, topics, revealedTopics, onRevealTopic, onReset, onSetTopics, onExit }) {
   const TOPICS = topics || DEFAULT_TOPICS;
   const [valid, setValid] = useState({});
+  const [editingTopics, setEditingTopics] = useState(false);
+  const [topicsText, setTopicsText] = useState(TOPICS.join("\n"));
+
+  useEffect(() => {
+    if (topics) setTopicsText(topics.join("\n"));
+  }, [topics]);
+
+  const parsedTopics = topicsText.split("\n").map(t => t.trim()).filter(Boolean);
+  const topicsEditValid = parsedTopics.length >= 24;
+
+  const saveTopics = () => {
+    if (!topicsEditValid) return;
+    onSetTopics(parsedTopics);
+    setEditingTopics(false);
+  };
 
   const total = players.reduce((s, p) => s + Object.keys(p.marks).length, 0);
   const bPl = players.filter(p => getLines(p.marks).length > 0);
@@ -67,7 +82,31 @@ export default function HostView({ players, topics, revealedTopics, onRevealTopi
       </div>
 
       {/* Topic Coverage */}
-      <div className="sh">Topic coverage</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <div className="sh" style={{ marginBottom: 0 }}>Topic coverage</div>
+        <button className="btn bg bsm" onClick={() => setEditingTopics(e => !e)}>
+          {editingTopics ? "Cancel" : "✎ Edit topics"}
+        </button>
+      </div>
+
+      {editingTopics && (
+        <div style={{ marginBottom: 16 }}>
+          <div className="fl" style={{ color: topicsEditValid ? "var(--mu)" : "var(--rn)" }}>
+            One per line, min 24 ({parsedTopics.length} entered) — applies to new players only
+          </div>
+          <textarea
+            className="inp"
+            value={topicsText}
+            onChange={e => setTopicsText(e.target.value)}
+            rows={10}
+            style={{ resize: "vertical", minHeight: 200, fontFamily: "var(--fnt)", lineHeight: 1.8, marginBottom: 8 }}
+          />
+          <button className="btn ba bsm" onClick={saveTopics} disabled={!topicsEditValid}>
+            Save topics →
+          </button>
+        </div>
+      )}
+
       <div className="tpl">
         {TOPICS.map(topic => {
           const covered = revealedSet.has(topic);

@@ -2,12 +2,13 @@ import { useState } from "react";
 import { FREE, RATES, LINES, LINE_NAMES, getLines } from "../config";
 import KnowledgeModal from "./KnowledgeModal";
 
-export default function Board({ name, board, marks, subs, revealedTopics, onMark, onSubmitBingo, onLeave }) {
+export default function Board({ name, board, marks, subs, players, revealedTopics, onMark, onSubmitBingo, onLeave }) {
   const [pending, setPending] = useState(null);
   const [selectedRating, setSelectedRating] = useState(null);
 
   const lines = getLines(marks);
   const bingoSq = new Set(lines.flat());
+  const others = (players || []).filter(p => p.name !== name);
 
   const clickSq = i => {
     if (i === FREE) return;
@@ -32,6 +33,13 @@ export default function Board({ name, board, marks, subs, revealedTopics, onMark
           <div className="tlogo">BINGO</div>
           <div className="chip">Playing as <b>{name}</b></div>
         </div>
+
+        {others.length > 0 && (
+          <div className="pnames">
+            <span className="plbl">Also here:</span>
+            {others.map(p => <span key={p.id} className="chip">{p.name}</span>)}
+          </div>
+        )}
 
         <div className="bingo-grid">
           {board.map((t, i) => {

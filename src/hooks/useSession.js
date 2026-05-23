@@ -110,5 +110,16 @@ export function useSession(onReset, topicsToSet) {
     }
   }, []);
 
-  return { players, topics, revealedTopics, sendState, revealTopic, resetGame, isLive: !!WS_URL };
+  const setSessionTopics = useCallback((newTopics) => {
+    const c = conn.current;
+    if (!c) return;
+    if (c.type === "ws" && c.ws.readyState === WebSocket.OPEN) {
+      c.ws.send(JSON.stringify({ t: "setTopics", topics: newTopics }));
+    } else if (c.type === "bc") {
+      localStorage.setItem(`bingo-topics-${SESSION}`, JSON.stringify(newTopics));
+      setTopics(newTopics);
+    }
+  }, []);
+
+  return { players, topics, revealedTopics, sendState, revealTopic, resetGame, setSessionTopics, isLive: !!WS_URL };
 }
