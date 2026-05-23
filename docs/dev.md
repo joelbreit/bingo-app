@@ -59,3 +59,18 @@ sam build && sam deploy            # subsequent
 ```
 
 The WebSocket endpoint URL is printed in the SAM output. Set it as `VITE_WS_URL` in a `.env.local` file for local dev against the live backend.
+
+Or use the deploy script which writes `.env.local` automatically:
+
+```bash
+bash scripts/deploy.sh
+```
+
+## Deploy frontend (Amplify Hosting)
+
+1. In the **AWS Amplify** console, create a new app and connect your Git repo
+2. Amplify auto-detects `amplify.yml` for build settings
+3. Add environment variable `VITE_WS_URL` (the WebSocket URL from the backend deploy)
+4. Add a **rewrite rule** for SPA routing:
+   - Source: `</^[^.]+$|\.(?!(css|gif|ico|jpg|js|png|txt|svg|woff|woff2|ttf|map|json)$)([^.]+$)/>` → Target: `/index.html` → Type: `200`
+5. Optionally add custom domain `bingo.joelbreit.com` under **Domain management**

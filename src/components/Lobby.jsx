@@ -1,6 +1,20 @@
+import { useEffect, useRef } from "react";
+import QRCode from "qrcode";
 import { SESSION } from "../config";
 
+const SESSION_URL = `${window.location.origin}/${SESSION}`;
+
 export default function Lobby({ name, setName, onJoin, onHostView }) {
+  const qrRef = useRef();
+
+  useEffect(() => {
+    QRCode.toCanvas(qrRef.current, SESSION_URL, {
+      width: 160,
+      margin: 1,
+      color: { dark: "#10b981", light: "#0a0a0f" },
+    });
+  }, []);
+
   return (
     <div className="lobby">
       <div>
@@ -31,7 +45,8 @@ export default function Lobby({ name, setName, onJoin, onHostView }) {
         Mark squares as topics are covered.<br />
         Rate your prior knowledge on each one.
       </div>
-      <div className="hint">bingo.joelbreit.com/{SESSION}</div>
+      <canvas ref={qrRef} style={{ borderRadius: 8 }} />
+      <div className="hint">{SESSION_URL}</div>
     </div>
   );
 }

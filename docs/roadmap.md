@@ -26,10 +26,10 @@ Replace `BroadcastChannel` with a serverless WebSocket backend so players on dif
 
 Make sessions shareable via link and get the app live.
 
-- [ ] Parse session ID from the URL path (`/demo2026`) using `window.location` — no router needed
-- [ ] Read `SESSION` from the URL in `config.js` with a hardcoded fallback for local dev
-- [ ] Deploy frontend to AWS Amplify at `bingo.joelbreit.com` with a catch-all rewrite rule
-- [ ] Host generates a session ID and shares a QR code / short link from the lobby
+- [x] Parse session ID from the URL path (`/demo2026`) using `window.location` — no router needed
+- [x] Read `SESSION` from the URL in `config.js` with a hardcoded fallback for local dev
+- [x] Deploy frontend to AWS Amplify at `bingo.joelbreit.com` with a catch-all rewrite rule
+- [x] Host generates a session ID and shares a QR code / short link from the lobby
 
 ## Phase 3 — Host Session Control
 
