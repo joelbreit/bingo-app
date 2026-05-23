@@ -1,5 +1,30 @@
 # Cloud Architecture
 
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph Browser ["Browser (React SPA)"]
+        App["App.jsx"] --> useSession["useSession hook"]
+        useSession -->|"VITE_WS_URL set"| WS["WebSocket client"]
+        useSession -->|"no VITE_WS_URL"| BC["BroadcastChannel\n(local dev, same browser)"]
+    end
+
+    subgraph AWS
+        APIGW_WS["API Gateway\n(WebSocket)"]
+        APIGW_HTTP["API Gateway\n(HTTP)"]
+        Lambda["Lambda ×4"]
+        DDB[("DynamoDB\nbingo-connections")]
+    end
+
+    WS <-->|wss://| APIGW_WS
+    App -->|"GET /sessions"| APIGW_HTTP
+    APIGW_WS --> Lambda
+    APIGW_HTTP --> Lambda
+    Lambda <--> DDB
+    Lambda -->|broadcast to session| APIGW_WS
+```
+
 ## AWS Services
 
 | Service | Role |
@@ -60,6 +85,38 @@ Triggered on HTTP `GET /sessions`. Scans DynamoDB for session records (`begins_w
 
 ### `bingo-delete-session`
 Triggered on HTTP `DELETE /sessions/{sessionId}`. Queries the `sessionId-index` GSI to find all DynamoDB records for the session (the `session#<id>` record plus all player connection records), then deletes them all. Players' WebSocket connections are not explicitly closed — they become stale and are pruned on the next broadcast attempt (410 response). Returns `{ ok: true }`.
+
+## Real-time message flow
+
+```mermaid
+sequenceDiagram
+    participant P as Player
+    participant T as Transport (WS / BC)
+    participant L as Lambda (bingo-message)
+    participant DB as DynamoDB
+    participant H as Host
+
+    Note over P,H: Player joins and sends initial board state
+    P->>T: { t: "ps", playerState: { name, board, marks } }
+    T->>L: WebSocket $default
+    L->>DB: write playerState to connection record
+    L->>T: broadcast { t: "players", players, revealedTopics }
+    T->>H: HostView re-renders with new player
+
+    Note over P,H: Host reveals a topic
+    H->>T: { t: "reveal", topic }
+    T->>L: WebSocket $default
+    L->>DB: append topic to revealedTopics
+    L->>T: broadcast { t: "players", ..., revealedTopics }
+    T->>P: Board unlocks the revealed square
+
+    Note over P,H: Player marks a square
+    P->>T: { t: "ps", playerState: { ..., marks } }
+    T->>L: WebSocket $default
+    L->>DB: update playerState on connection record
+    L->>T: broadcast updated player list
+    T->>H: mini-board re-renders in HostView
+```
 
 ## Resource Tagging
 

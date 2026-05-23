@@ -1,5 +1,47 @@
 # Developer Guide
 
+## App flow
+
+### User journey
+
+```mermaid
+flowchart TD
+    A([Open URL]) --> B{which URL?}
+    B -->|"/"| C["Root Lobby\nlist · create session"]
+    B -->|"/{id}"| D["Session Lobby\nenter name"]
+    C -->|create or pick session| D
+    D -->|Join| E["Player Board\n5×5 bingo grid"]
+    D -->|host code| F["Host Dashboard\nlive player view"]
+    E --> G[Click square\nrate your knowledge]
+    G --> H{bingo line?}
+    H -->|yes| I[🎉 Confetti]
+    I --> G
+    F --> J[Reveal topic]
+    J -->|broadcast to all boards| E
+    E -->|← Lobby| A
+    F -->|← Lobby| A
+```
+
+### Screen state (App.jsx)
+
+The app is a single React tree. `screen` is a state variable; navigating back to the lobby is a full page load to `/`.
+
+```mermaid
+stateDiagram-v2
+    [*] --> RootLobby : visit /
+    [*] --> SessionLobby : visit /{id}
+    RootLobby --> SessionLobby : create or join session
+    SessionLobby --> Board : enter name → Join
+    SessionLobby --> Host : host code → Dashboard
+    Board --> RootLobby : ← Lobby
+    Host --> RootLobby : ← Lobby
+
+    RootLobby : Root Lobby (/)
+    SessionLobby : Session Lobby (/{id})
+    Board : Player Board
+    Host : Host Dashboard
+```
+
 ## Setup
 
 ```bash
