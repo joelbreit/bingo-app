@@ -45,14 +45,17 @@ export default function App() {
     setTimeout(() => sendState({ id: `${name}_${SESSION}`, name, board: b, marks: {} }), 60);
   };
 
-  const handleMark = (squareIndex, rating) => {
-    const m = { ...marks, [squareIndex]: rating };
+  const handleMark = (squareIndex, rating, note = null) => {
+    const m = { ...marks, [squareIndex]: { r: rating, n: note } };
     setMarks(m);
     sendState({ id: `${name}_${SESSION}`, name, board, marks: m });
   };
 
   return (
-    <div className="app">
+    <div
+      className="min-h-screen flex flex-col items-center px-3 sm:px-4 py-4"
+      style={{ background: "radial-gradient(ellipse 80% 50% at 50% -5%, rgba(16,185,129,.06), transparent 70%), var(--color-bg)" }}
+    >
       {screen === "lobby" && (
         <Lobby
           name={name}

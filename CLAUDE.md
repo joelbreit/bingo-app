@@ -23,32 +23,34 @@ No test or lint scripts are configured.
 
 ## Architecture
 
-Single-page React 19 app built with Vite. The entire application lives in `src/App.jsx` (~600 lines) — all state, components, and styles are in one file.
+Single-page React 19 app built with Vite. Code is split: `src/App.jsx` is a thin shell, screens live in `src/components/` (Lobby, Board, HostView, KnowledgeModal, PlayerBoardModal, ThemeToggle, RateIcon), shared state is in `src/hooks/` (`useSession` for transport, `useTheme` for dark/light), and constants are in `src/config.js`.
 
 ### Three screens
 
-1. **Lobby** — player enters name to join or goes to host dashboard
-2. **Board** — player's shuffled 5×5 bingo grid; clicking squares opens a knowledge-rating modal
-3. **Host Dashboard** — live view of all players' boards, topic knowledge breakdown, and bingo submissions
+1. **Lobby** — at the root, host creates a session (id, optional host code, topic list); at `/{id}`, players enter their name
+2. **Board** — player's shuffled 5×5 bingo grid; clicking squares opens a knowledge-rating modal with optional note
+3. **Host Dashboard** — live view of all players' boards, topic coverage, knowledge breakdown, and bingo submissions; click a mini-board to open the player's full board in a modal
 
 ### Key data structures
 
-- `TOPICS` — 24 topic strings; shuffled into a 5×5 board with a FREE center square
-- `marks` — sparse object `{ squareIndex: rateIndex }` tracking which squares a player has rated
-- `RATES` — 3 rating levels (new/partly/already knew) with colors and emojis
+- `TOPICS` — default topic pool; sessions can override via host editor (stored in DynamoDB session record)
+- `marks` — sparse object `{ squareIndex: { r: ratingId, n: noteOrNull } }` tracking each player's rated squares
+- `RATES` — 3 rating levels (new/partial/knew); colors and bg/text variants reference CSS variables so they swap with theme
 - `LINES` — 12 winning combinations (5 rows + 5 cols + 2 diagonals); `getLines()` finds completed ones
-- `livePl` — players received over `BroadcastChannel`; `mockPl` — hardcoded demo players
+- `revealedTopics` — host-controlled list of topics players can mark off
 
 ### Communication
 
-Uses the browser `BroadcastChannel` API so multiple tabs on the same device can simulate multiplayer. A player tab broadcasts its state on every update; the host tab listens and aggregates. A WebSocket backend is planned for real multi-device use (see `docs/plan.md`).
+`src/hooks/useSession.js` abstracts transport. With `VITE_WS_URL` set, it uses WebSocket against the AWS backend (see `docs/cloud.md`). Without it, it falls back to `BroadcastChannel` for multi-tab local dev.
 
 ### Styling
 
-All CSS is a single template-literal string injected via a `<style>` tag inside the component. Dark theme with emerald/magenta accents, uses Google Fonts (Syne + JetBrains Mono).
+Tailwind CSS v4 via `@tailwindcss/vite`. Design tokens are declared in `src/index.css` under `@theme` and themed for dark (default) / light by overriding `--color-*` variables inside a `.light` block — Tailwind utility classes auto-track those variables. `useTheme` toggles the `.light` / `.dark` class on `<html>` and persists to localStorage. Initial theme is applied in `src/main.jsx` before the React render to avoid FOUC. Icons from `lucide-react`. Fonts: Syne (display) + JetBrains Mono (body), loaded from Google Fonts. Confetti from `canvas-confetti`.
 
-### Configuration (top of App.jsx)
+### Configuration (`src/config.js`)
 
-- `SESSION` — session ID string used as the `BroadcastChannel` name
-- `TOPICS` — swap these out to change the bingo content
+- `SESSION` — first URL path segment (e.g. `/demo2026` → `demo2026`); falls back to `"demo2026"` at root
+- `AT_ROOT` — true when no path segment; lobby shows session-creation UI instead of join UI
+- `TOPICS` — default topic pool used when a session has no custom topics
 - `FREE` — index of the center free square (always 12)
+- `RATES` — rating levels with CSS-variable color references (theme-aware)

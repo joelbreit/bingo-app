@@ -1,6 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { ArrowLeft, ArrowRight, Sparkles, Check } from "lucide-react";
+import confetti from "canvas-confetti";
 import { FREE, RATES, LINES, LINE_NAMES, getLines } from "../config";
 import KnowledgeModal from "./KnowledgeModal";
+import RateIcon from "./RateIcon";
+import ThemeToggle from "./ThemeToggle";
+
+const fireConfetti = () => {
+  const colors = ["#10b981", "#e879f9", "#8b5cf6", "#f59e0b"];
+  confetti({ particleCount: 120, spread: 90, origin: { y: 0.65 }, colors });
+  setTimeout(() => confetti({ particleCount: 60, spread: 60, angle: 60, origin: { x: 0, y: 0.7 }, colors }), 180);
+  setTimeout(() => confetti({ particleCount: 60, spread: 60, angle: 120, origin: { x: 1, y: 0.7 }, colors }), 360);
+};
 
 export default function Board({ name, board, marks, subs, players, revealedTopics, onMark, onSubmitBingo, onLeave }) {
   const [pending, setPending] = useState(null);
@@ -10,104 +21,148 @@ export default function Board({ name, board, marks, subs, players, revealedTopic
   const bingoSq = new Set(lines.flat());
   const others = (players || []).filter(p => p.name !== name);
 
+  const prevBingoCount = useRef(0);
+  useEffect(() => {
+    if (lines.length > prevBingoCount.current && lines.length > 0) fireConfetti();
+    prevBingoCount.current = lines.length;
+  }, [lines.length]);
+
   const clickSq = i => {
     if (i === FREE) return;
     if (revealedTopics && !revealedTopics.includes(board[i])) return;
-    setSelectedRating(marks[i] || null);
+    setSelectedRating(marks[i]?.r || null);
     setPending(i);
   };
 
-  const confirm = () => {
+  const confirm = (note) => {
     if (pending == null || !selectedRating) return;
-    onMark(pending, selectedRating);
+    onMark(pending, selectedRating, note);
     setPending(null);
     setSelectedRating(null);
   };
 
   const cancelModal = () => { setPending(null); setSelectedRating(null); };
 
+  const marked = Object.keys(marks).length;
+
   return (
     <>
-      <div className="bp">
-        <div className="tbar">
-          <div className="tlogo">BINGO</div>
-          <div className="chip">Playing as <b>{name}</b></div>
+      <div className="w-full max-w-[560px]">
+        <div className="flex justify-between items-center py-2 pb-3.5">
+          <div className="font-display font-black text-xl tracking-[8px] text-accent">BINGO</div>
+          <div className="flex items-center gap-2">
+            <div className="bg-s1 border border-b1 rounded-full px-3 py-1 text-[10px] text-mu">
+              Playing as <b className="text-tx">{name}</b>
+            </div>
+            <ThemeToggle />
+          </div>
         </div>
 
         {others.length > 0 && (
-          <div className="pnames">
-            <span className="plbl">Also here:</span>
-            {others.map(p => <span key={p.id} className="chip">{p.name}</span>)}
+          <div className="flex gap-1.5 flex-wrap items-center mb-2.5">
+            <span className="text-[9px] text-mu shrink-0">Also here:</span>
+            {others.map(p => (
+              <span key={p.id} className="bg-s1 border border-b1 rounded-full px-2.5 py-0.5 text-[10px] text-mu">
+                <span className="text-tx">{p.name}</span>
+              </span>
+            ))}
           </div>
         )}
 
-        <div className="bingo-grid">
+        <div className="grid grid-cols-5 gap-1">
           {board.map((t, i) => {
-            const r = marks[i];
+            const mark = marks[i];
+            const r = mark?.r;
             const isFree = i === FREE;
             const isRevealed = isFree || !revealedTopics || revealedTopics.includes(t);
             const inBingo = bingoSq.has(i);
-            const ri = RATES.find(x => x.id === r);
-            let cls = "sq";
-            if (isFree) cls += " sqF";
-            else if (!isRevealed) cls += " sqL";
-            else if (r === "new") cls += " sqN";
-            else if (r === "partial") cls += " sqP";
-            else if (r === "knew") cls += " sqK";
-            if (inBingo) cls += " sqB";
+            const rate = RATES.find(x => x.id === r);
+
+            const baseCls = "aspect-square rounded-md border flex flex-col items-center justify-center cursor-pointer transition-colors p-1 text-center overflow-hidden select-none active:scale-[.93]";
+            let cls = baseCls;
+            let style = {};
+
+            if (isFree) {
+              cls += " bg-s3 border-s4 cursor-default";
+            } else if (!isRevealed) {
+              cls += " bg-s1 border-b1 opacity-30 cursor-not-allowed pointer-events-none";
+            } else if (rate) {
+              style = { background: rate.bg, borderColor: rate.color, color: rate.textColor };
+            } else {
+              cls += " bg-s1 border-b1 hover:border-accent/40 hover:bg-accent/5";
+            }
+            if (inBingo) cls += " outline outline-2 -outline-offset-1 outline-accent anim-pulse-ring";
+
             return (
-              <div key={i} className={cls} onClick={() => clickSq(i)}>
-                {!isFree && ri && <div className="sqe">{ri.icon}</div>}
-                <div className="sqt">{isFree ? "FREE" : t}</div>
+              <div
+                key={i}
+                className={cls}
+                style={style}
+                onClick={() => clickSq(i)}
+              >
+                {!isFree && rate && <RateIcon id={rate.id} size={12} strokeWidth={2.25} className="mb-0.5" />}
+                <div
+                  className={isFree
+                    ? "font-display font-black text-[11px] tracking-[2px] text-mu pointer-events-none"
+                    : "text-[8px] leading-[1.4] pointer-events-none break-words hyphens-auto"}
+                  style={!isFree && rate ? { color: rate.textColor } : undefined}
+                >
+                  {isFree ? "FREE" : t}
+                </div>
               </div>
             );
           })}
         </div>
 
-        {/* Progress */}
-        <div className="prow">
-          <span>{Object.keys(marks).length}/24 marked</span>
+        <div className="flex justify-between text-[10px] text-mu mt-3 mb-1">
+          <span>{marked}/24 marked</span>
           {lines.length > 0 && (
-            <span style={{ color: "var(--pi)" }}>
-              ✦ {lines.length} bingo{lines.length > 1 ? "s" : ""}
+            <span className="text-pink flex items-center gap-1">
+              <Sparkles size={10} /> {lines.length} bingo{lines.length > 1 ? "s" : ""}
             </span>
           )}
         </div>
-        <div className="pbar">
-          <div className="pfil" style={{ width: `${Object.keys(marks).length / 24 * 100}%` }} />
+        <div className="h-0.5 bg-s2 rounded overflow-hidden mb-3">
+          <div className="h-full bg-accent rounded transition-[width] duration-500" style={{ width: `${marked / 24 * 100}%` }} />
         </div>
 
-        {/* Legend */}
-        <div className="leg">
+        <div className="flex gap-3.5 flex-wrap mb-3.5">
           {RATES.map(r => (
-            <div key={r.id} className="lgi">
-              <div className="lgd" style={{ background: r.color }} />
-              {r.icon} {r.label}
+            <div key={r.id} className="flex items-center gap-1.5 text-[9px] text-mu">
+              <div className="w-2 h-2 rounded-sm" style={{ background: r.color }} />
+              <RateIcon id={r.id} size={10} /> {r.label}
             </div>
           ))}
         </div>
 
-        {/* Bingo Zone */}
         {lines.length > 0 && (
-          <div className="bzone">
-            <div className="bh">BINGO!</div>
-            <div className="bsub2">Select a completed line to notify the host</div>
-            <div className="ll">
+          <div className="bg-s1 border border-pink/20 rounded-2xl p-4 mb-2.5 anim-fade">
+            <div className="font-display font-black text-2xl tracking-[10px] text-pink text-center pl-3">BINGO!</div>
+            <div className="text-[10px] text-mu text-center mt-1 mb-3.5">Select a completed line to notify the host</div>
+            <div className="flex flex-col gap-1.5">
               {lines.map((line, idx) => {
                 const li = LINES.findIndex(l => l.every((v, j) => v === line[j]));
                 const done = subs.includes(li);
                 return (
-                  <div key={idx} className={`litem${done ? " done" : ""}`}>
-                    <span style={{ color: done ? "var(--rk)" : "var(--tx)" }}>
+                  <div
+                    key={idx}
+                    className={`flex items-center justify-between border rounded-lg px-3 py-2 text-[11px] transition-colors ${
+                      done ? "bg-rate-knew/5 border-rate-knew" : "bg-s2 border-b1"
+                    }`}
+                  >
+                    <span style={{ color: done ? "var(--color-rate-knew)" : "var(--color-tx)" }}>
                       {LINE_NAMES[li] || `Bingo ${idx + 1}`}
                     </span>
                     <button
-                      className="btn bg bsm"
                       disabled={done}
-                      style={done ? { color: "var(--rk)", borderColor: "var(--rk)" } : {}}
                       onClick={() => onSubmitBingo(li)}
+                      className={`inline-flex items-center gap-1 px-3 py-1.5 text-[10px] rounded-lg border transition ${
+                        done
+                          ? "text-rate-knew border-rate-knew cursor-default"
+                          : "text-mu border-b1 hover:text-tx hover:border-b2"
+                      }`}
                     >
-                      {done ? "✓ Submitted" : "Submit →"}
+                      {done ? <><Check size={10} /> Submitted</> : <>Submit <ArrowRight size={10} /></>}
                     </button>
                   </div>
                 );
@@ -116,8 +171,13 @@ export default function Board({ name, board, marks, subs, players, revealedTopic
           </div>
         )}
 
-        <div style={{ marginTop: 16 }}>
-          <button className="btn bg bsm" onClick={onLeave}>← Leave</button>
+        <div className="mt-4">
+          <button
+            onClick={onLeave}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] rounded-lg border border-b1 text-mu hover:text-tx hover:border-b2"
+          >
+            <ArrowLeft size={12} /> Leave
+          </button>
         </div>
       </div>
 
@@ -125,6 +185,7 @@ export default function Board({ name, board, marks, subs, players, revealedTopic
         <KnowledgeModal
           topic={board[pending]}
           selectedRating={selectedRating}
+          initialNote={marks[pending]?.n || ""}
           onSelect={setSelectedRating}
           onConfirm={confirm}
           onCancel={cancelModal}

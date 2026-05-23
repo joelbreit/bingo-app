@@ -61,10 +61,12 @@ Allow the host to customize topics without editing source code.
 
 ## Phase 5 — Polish & UX
 
-- [ ] Improve look on mobile devices
-- [ ] Dark/Light mode
-- [ ] Confetti animation on bingo
-- [ ] Player disconnect/reconnect — rejoin restores same board from DynamoDB
-- [ ] Host view: click a mini-board to see the player's full board in a modal
-- [ ] Allow players to add note to a square response
+- [x] Improve look on mobile devices
+- [x] Update styling to use Tailwind (v4 via `@tailwindcss/vite`, theme tokens defined in `src/index.css` `@theme` block)
+- [x] Dark/Light mode (toggle in `src/components/ThemeToggle.jsx`, persisted in localStorage, applied to `<html>` via `light`/`dark` class)
+- [x] Confetti animation on bingo (`canvas-confetti`; fires only when bingo count increases)
+- [x] Host view: click a mini-board to see the player's full board in a modal (`src/components/PlayerBoardModal.jsx`)
+- [x] Allow players to add note to a square response (marks now `{ r, n }`; notes rendered in player board modal)
+- [x] Replace emoji with nice icons (`lucide-react`; `src/components/RateIcon.jsx`)
+- [x] Replace red "New to me" color with violet (`--color-rate-new: #8b5cf6`); red kept exclusively for destructive actions
 - [x] QR code display on the lobby screen

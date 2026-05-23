@@ -1,11 +1,18 @@
 import { useState, useEffect } from "react";
-import { FREE, SESSION, TOPICS as DEFAULT_TOPICS, getLines } from "../config";
+import { ArrowLeft, RotateCcw, Trash2, Pencil, Check, ArrowRight } from "lucide-react";
+import { FREE, SESSION, TOPICS as DEFAULT_TOPICS, RATES, getLines } from "../config";
+import RateIcon from "./RateIcon";
+import ThemeToggle from "./ThemeToggle";
+import PlayerBoardModal from "./PlayerBoardModal";
+
+const rateColorVar = id => id === "new" ? "var(--color-rate-new)" : id === "partial" ? "var(--color-rate-partial)" : id === "knew" ? "var(--color-rate-knew)" : "var(--color-s3)";
 
 export default function HostView({ players, topics, revealedTopics, onRevealTopic, onReset, onSetTopics, onDelete, onExit }) {
   const TOPICS = topics || DEFAULT_TOPICS;
   const [valid, setValid] = useState({});
   const [editingTopics, setEditingTopics] = useState(false);
   const [topicsText, setTopicsText] = useState(TOPICS.join("\n"));
+  const [openPlayer, setOpenPlayer] = useState(null);
 
   useEffect(() => {
     if (topics) setTopicsText(topics.join("\n"));
@@ -20,18 +27,18 @@ export default function HostView({ players, topics, revealedTopics, onRevealTopi
     setEditingTopics(false);
   };
 
-  const total = players.reduce((s, p) => s + Object.keys(p.marks).length, 0);
   const bPl = players.filter(p => getLines(p.marks).length > 0);
   const revealedSet = new Set(revealedTopics || []);
 
-  // Aggregate knowledge per topic across all players
   const topicMap = {};
   for (const p of players) {
     for (const [k, v] of Object.entries(p.marks)) {
       const t = p.board[+k];
       if (!t || t === "FREE") continue;
+      const rid = v?.r;
+      if (!rid) continue;
       if (!topicMap[t]) topicMap[t] = { new: 0, partial: 0, knew: 0 };
-      topicMap[t][v] = (topicMap[t][v] || 0) + 1;
+      topicMap[t][rid] = (topicMap[t][rid] || 0) + 1;
     }
   }
   const topicStats = Object.entries(topicMap)
@@ -44,89 +51,107 @@ export default function HostView({ players, topics, revealedTopics, onRevealTopi
     .slice(0, 14);
 
   return (
-    <div className="hp">
-      <div className="htop">
+    <div className="w-full max-w-[940px]">
+      <div className="flex justify-between items-start flex-wrap gap-3 py-3.5 pb-5 border-b border-b1 mb-5">
         <div>
-          <div className="hlog">
+          <div className="font-display font-black text-lg tracking-[3px] text-accent flex items-center">
             Host Dashboard
-            <span className="badge">● Live</span>
+            <span className="inline-flex items-center gap-1 bg-accent/10 text-accent border border-accent/20 rounded-full px-2.5 py-0.5 text-[9.5px] ml-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent" /> Live
+            </span>
           </div>
-          <div className="stag">Session · {SESSION}</div>
+          <div className="text-[10px] text-mu tracking-wider mt-0.5">Session · {SESSION}</div>
         </div>
-        <div style={{ display: "flex", gap: 6 }}>
+        <div className="flex gap-1.5 items-center flex-wrap">
+          <ThemeToggle />
           <button
-            className="btn bg bsm"
-            style={{ color: "var(--rn)", borderColor: "rgba(239,68,68,.3)" }}
             onClick={() => window.confirm("Reset the game? This clears all marks and revealed topics.") && onReset()}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] text-danger border-danger/30 hover:border-danger/60 hover:bg-danger/5"
           >
-            ↻ Reset
+            <RotateCcw size={11} /> Reset
           </button>
-          <button className="btn bg bsm" onClick={onExit}>← Exit</button>
           <button
-            className="btn bg bsm"
-            style={{ color: "var(--rn)", borderColor: "rgba(239,68,68,.5)", background: "rgba(239,68,68,.08)" }}
-            onClick={() => window.confirm("Delete this session? This cannot be undone — all players will be disconnected.") && onDelete()}
+            onClick={onExit}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-b1 text-[10px] text-mu hover:text-tx hover:border-b2"
           >
-            ✕ Delete session
+            <ArrowLeft size={11} /> Exit
+          </button>
+          <button
+            onClick={() => window.confirm("Delete this session? This cannot be undone — all players will be disconnected.") && onDelete()}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] text-danger border-danger/50 bg-danger/10 hover:bg-danger/15"
+          >
+            <Trash2 size={11} /> <span className="hidden sm:inline">Delete session</span><span className="sm:hidden">Delete</span>
           </button>
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="krow">
-        <div className="kpi">
-          <div className="knum" style={{ color: "var(--a)" }}>{players.length}</div>
-          <div className="klbl">Players joined</div>
+      <div className="grid grid-cols-3 gap-2.5 mb-6">
+        <div className="bg-s1 border border-b1 rounded-xl p-4">
+          <div className="font-display font-black text-3xl text-accent">{players.length}</div>
+          <div className="text-[9px] text-mu tracking-wider uppercase mt-1">Players joined</div>
         </div>
-        <div className="kpi">
-          <div className="knum" style={{ color: "var(--rp)" }}>{revealedSet.size}/{TOPICS.length}</div>
-          <div className="klbl">Topics covered</div>
+        <div className="bg-s1 border border-b1 rounded-xl p-4">
+          <div className="font-display font-black text-3xl text-rate-partial">{revealedSet.size}/{TOPICS.length}</div>
+          <div className="text-[9px] text-mu tracking-wider uppercase mt-1">Topics covered</div>
         </div>
-        <div className="kpi">
-          <div className="knum" style={{ color: "var(--pi)" }}>{bPl.length}</div>
-          <div className="klbl">Bingos claimed</div>
+        <div className="bg-s1 border border-b1 rounded-xl p-4">
+          <div className="font-display font-black text-3xl text-pink">{bPl.length}</div>
+          <div className="text-[9px] text-mu tracking-wider uppercase mt-1">Bingos claimed</div>
         </div>
       </div>
 
-      {/* Topic Coverage */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-        <div className="sh" style={{ marginBottom: 0 }}>Topic coverage</div>
-        <button className="btn bg bsm" onClick={() => setEditingTopics(e => !e)}>
-          {editingTopics ? "Cancel" : "✎ Edit topics"}
+      <div className="flex justify-between items-center mb-2.5">
+        <div className="font-display font-extrabold text-[10px] tracking-[2px] text-mu uppercase">Topic coverage</div>
+        <button
+          onClick={() => setEditingTopics(e => !e)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-b1 text-[10px] text-mu hover:text-tx hover:border-b2"
+        >
+          {editingTopics ? <>Cancel</> : <><Pencil size={11} /> Edit topics</>}
         </button>
       </div>
 
       {editingTopics && (
-        <div style={{ marginBottom: 16 }}>
-          <div className="fl" style={{ color: topicsEditValid ? "var(--mu)" : "var(--rn)" }}>
+        <div className="mb-4">
+          <div className="text-[9.5px] tracking-[2px] uppercase mb-1.5" style={{ color: topicsEditValid ? "var(--color-mu)" : "var(--color-danger)" }}>
             One per line, min 24 ({parsedTopics.length} entered) — applies to new players only
           </div>
           <textarea
-            className="inp"
             value={topicsText}
             onChange={e => setTopicsText(e.target.value)}
             rows={10}
-            style={{ resize: "vertical", minHeight: 200, fontFamily: "var(--fnt)", lineHeight: 1.8, marginBottom: 8 }}
+            className="w-full bg-s2 border border-b1 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none rounded-lg px-3.5 py-3 text-[13px] leading-[1.8] resize-y min-h-[200px] mb-2"
           />
-          <button className="btn ba bsm" onClick={saveTopics} disabled={!topicsEditValid}>
-            Save topics →
+          <button
+            onClick={saveTopics}
+            disabled={!topicsEditValid}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent text-bg font-display font-extrabold text-[10px] tracking-wider disabled:opacity-30"
+          >
+            Save topics <ArrowRight size={11} />
           </button>
         </div>
       )}
 
-      <div className="tpl">
+      <div className="flex flex-col gap-1 mb-3">
         {TOPICS.map(topic => {
           const covered = revealedSet.has(topic);
           return (
-            <div key={topic} className={`litem${covered ? " done" : ""}`}>
-              <span style={{ color: covered ? "var(--rk)" : "var(--tx)" }}>
-                {covered ? "✓ " : ""}{topic}
+            <div
+              key={topic}
+              className={`flex items-center justify-between border rounded-lg px-3 py-2 text-[11px] transition-colors ${
+                covered ? "bg-rate-knew/5 border-rate-knew" : "bg-s2 border-b1"
+              }`}
+            >
+              <span className="flex items-center gap-1.5" style={{ color: covered ? "var(--color-rate-knew)" : "var(--color-tx)" }}>
+                {covered && <Check size={11} />}{topic}
               </span>
               <button
-                className="btn bg bsm"
                 disabled={covered}
-                style={covered ? { color: "var(--rk)", borderColor: "var(--rk)" } : {}}
                 onClick={() => onRevealTopic(topic)}
+                className={`px-3 py-1 text-[10px] rounded-lg border transition ${
+                  covered
+                    ? "text-rate-knew border-rate-knew cursor-default"
+                    : "text-mu border-b1 hover:text-tx hover:border-b2"
+                }`}
               >
                 {covered ? "Covered" : "Reveal"}
               </button>
@@ -136,95 +161,100 @@ export default function HostView({ players, topics, revealedTopics, onRevealTopi
       </div>
       {revealedSet.size < TOPICS.length && (
         <button
-          className="btn ba bsm"
-          style={{ marginBottom: 24 }}
           onClick={() => onRevealTopic(TOPICS.filter(t => !revealedSet.has(t)))}
+          className="inline-flex items-center gap-1.5 mb-6 px-3 py-1.5 rounded-lg bg-accent text-bg font-display font-extrabold text-[10px] tracking-wider"
         >
           Reveal All ({TOPICS.length - revealedSet.size} remaining)
         </button>
       )}
 
-      {/* Player Mini-Boards */}
-      <div className="sh">Live players</div>
-      <div className="pg">
+      <div className="font-display font-extrabold text-[10px] tracking-[2px] text-mu uppercase mb-2.5">Live players</div>
+      <div className="grid gap-2 mb-6" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}>
         {players.length === 0 ? (
-          <div className="empty" style={{ gridColumn: "1/-1" }}>
+          <div className="text-center text-mu py-16 text-[11px] leading-[2.2] col-span-full">
             Waiting for players to join…<br />
-            <span style={{ fontSize: 9 }}>Open a new tab and join as a player to test</span>
+            <span className="text-[9px]">Open a new tab and join as a player to test</span>
           </div>
         ) : players.map(p => {
           const mc = Object.keys(p.marks).length;
           const bl = getLines(p.marks).length;
           return (
-            <div key={p.id} className="pc">
-              <div className="pn">{p.name}</div>
-              <div className="mg">
+            <button
+              key={p.id}
+              onClick={() => setOpenPlayer(p)}
+              className="bg-s1 border border-b1 rounded-xl p-3 text-left hover:border-b2 hover:bg-s2 transition-colors"
+            >
+              <div className="font-display font-extrabold text-xs mb-2 truncate">{p.name}</div>
+              <div className="grid grid-cols-5 gap-0.5 mb-1.5">
                 {Array.from({ length: 25 }, (_, i) => {
                   const f = i === FREE;
-                  const r = p.marks[i];
-                  let cls = "ms";
-                  if (f) cls += " free";
-                  else if (r) cls += ` ${r}`;
-                  return <div key={i} className={cls} />;
+                  const rid = p.marks[i]?.r;
+                  const bg = f ? "var(--color-s4)" : rid ? rateColorVar(rid) : "var(--color-s3)";
+                  return <div key={i} className="aspect-square rounded-sm" style={{ background: bg }} />;
                 })}
               </div>
-              <div className="ps">
+              <div className="text-[9px] text-mu flex justify-between">
                 <span>{mc}/24</span>
-                {bl > 0 && <span style={{ color: "var(--pi)" }}>✦×{bl}</span>}
+                {bl > 0 && <span className="text-pink">✦×{bl}</span>}
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
 
-      {/* Knowledge Breakdown */}
       {topicStats.length > 0 && (
         <>
-          <div className="sh">Knowledge breakdown</div>
-          <div className="leg" style={{ marginBottom: 10 }}>
-            {[["var(--rn)", "🚀", "New to me"], ["var(--rp)", "💡", "Partly familiar"], ["var(--rk)", "⭐", "Already knew"]].map(([c, e, l]) => (
-              <div key={l} className="lgi">
-                <div className="lgd" style={{ background: c }} />{e} {l}
+          <div className="font-display font-extrabold text-[10px] tracking-[2px] text-mu uppercase mb-2.5">Knowledge breakdown</div>
+          <div className="flex gap-3.5 flex-wrap mb-3">
+            {RATES.map(r => (
+              <div key={r.id} className="flex items-center gap-1.5 text-[9px] text-mu">
+                <div className="w-2 h-2 rounded-sm" style={{ background: r.color }} />
+                <RateIcon id={r.id} size={10} /> {r.label}
               </div>
             ))}
           </div>
-          <div className="kbars">
+          <div className="flex flex-col gap-1.5 mb-6">
             {topicStats.map(({ t, n, p, k, tot }) => (
-              <div key={t} className="kbrow">
-                <div className="kbtl">{t}</div>
-                <div className="kbtr">
-                  {n > 0 && <div className="kbseg" style={{ width: `${n / tot * 100}%`, background: "var(--rn)" }} />}
-                  {p > 0 && <div className="kbseg" style={{ width: `${p / tot * 100}%`, background: "var(--rp)" }} />}
-                  {k > 0 && <div className="kbseg" style={{ width: `${k / tot * 100}%`, background: "var(--rk)" }} />}
+              <div key={t} className="flex items-center gap-2">
+                <div className="text-[9.5px] text-mu w-[105px] truncate shrink-0">{t}</div>
+                <div className="flex-1 h-3 bg-s2 rounded overflow-hidden flex">
+                  {n > 0 && <div className="h-full transition-[width]" style={{ width: `${n / tot * 100}%`, background: "var(--color-rate-new)" }} />}
+                  {p > 0 && <div className="h-full transition-[width]" style={{ width: `${p / tot * 100}%`, background: "var(--color-rate-partial)" }} />}
+                  {k > 0 && <div className="h-full transition-[width]" style={{ width: `${k / tot * 100}%`, background: "var(--color-rate-knew)" }} />}
                 </div>
-                <div className="kbcnt">{tot}</div>
+                <div className="text-[9.5px] text-mu w-5 text-right shrink-0">{tot}</div>
               </div>
             ))}
           </div>
         </>
       )}
 
-      {/* Bingo Submissions */}
       {bPl.length > 0 && (
         <>
-          <div className="sh">Bingo submissions</div>
-          <div className="bsec">
-            {bPl.map(p => {
+          <div className="font-display font-extrabold text-[10px] tracking-[2px] text-mu uppercase mb-2.5">Bingo submissions</div>
+          <div className="bg-s1 border border-b1 rounded-xl p-3 mb-6">
+            {bPl.map((p, idx) => {
               const ls = getLines(p.marks);
               return (
-                <div key={p.id} className="bi">
+                <div
+                  key={p.id}
+                  className={`flex justify-between items-center py-2 ${idx < bPl.length - 1 ? "border-b border-b1" : ""}`}
+                >
                   <div>
-                    <div className="bin">{p.name}</div>
-                    <div className="bid">
-                      {ls.length} line{ls.length > 1 ? "s" : ""} complete ·{" "}
-                      {Object.keys(p.marks).length}/24 squares marked
+                    <div className="text-xs font-semibold">{p.name}</div>
+                    <div className="text-[9.5px] text-mu mt-0.5">
+                      {ls.length} line{ls.length > 1 ? "s" : ""} complete · {Object.keys(p.marks).length}/24 squares marked
                     </div>
                   </div>
                   <button
-                    className={`vbtn${valid[p.id] ? " vd" : ""}`}
                     onClick={() => !valid[p.id] && setValid(v => ({ ...v, [p.id]: true }))}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] ${
+                      valid[p.id]
+                        ? "bg-rate-knew/20 text-rate-knew border-rate-knew/30 cursor-default opacity-70"
+                        : "bg-rate-knew/10 text-rate-knew border-rate-knew/25 hover:bg-rate-knew/20"
+                    }`}
                   >
-                    {valid[p.id] ? "✓ Validated" : "Validate"}
+                    {valid[p.id] ? <><Check size={11} /> Validated</> : "Validate"}
                   </button>
                 </div>
               );
@@ -232,6 +262,8 @@ export default function HostView({ players, topics, revealedTopics, onRevealTopi
           </div>
         </>
       )}
+
+      {openPlayer && <PlayerBoardModal player={openPlayer} onClose={() => setOpenPlayer(null)} />}
     </div>
   );
 }

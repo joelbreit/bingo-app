@@ -27,9 +27,9 @@ export const LINE_NAMES = [
 ];
 
 export const RATES = [
-  { id: "new", icon: "🚀", label: "New to me", color: "#ef4444" },
-  { id: "partial", icon: "💡", label: "Partly familiar", color: "#f59e0b" },
-  { id: "knew", icon: "⭐", label: "Already knew this", color: "#22c55e" },
+  { id: "new", label: "New to me", color: "var(--color-rate-new)", textColor: "var(--color-rate-new-text)", bg: "var(--color-rate-new-bg)" },
+  { id: "partial", label: "Partly familiar", color: "var(--color-rate-partial)", textColor: "var(--color-rate-partial-text)", bg: "var(--color-rate-partial-bg)" },
+  { id: "knew", label: "Already knew this", color: "var(--color-rate-knew)", textColor: "var(--color-rate-knew-text)", bg: "var(--color-rate-knew-bg)" },
 ];
 
 const shuffle = a => {
@@ -56,7 +56,13 @@ export const makeMock = () => ["Alice", "Bob", "Cara", "Dev", "Emma", "Frank"].m
   let c = 0, n = 4 + Math.floor(Math.random() * 8);
   for (let i = 0; i < 25 && c < n; i++) {
     if (i === FREE) continue;
-    if (Math.random() > .48) { marks[i] = RATES[Math.floor(Math.random() * 3)].id; c++; }
+    if (Math.random() > .48) {
+      const rid = RATES[Math.floor(Math.random() * 3)].id;
+      const notes = ["Heard about it", "Used at last job", "Quick question for you", "Need to read up", "Curious"];
+      const note = Math.random() > .7 ? notes[Math.floor(Math.random() * notes.length)] : null;
+      marks[i] = { r: rid, n: note };
+      c++;
+    }
   }
   return { id: `${name}_mock`, name, board, marks };
 });
