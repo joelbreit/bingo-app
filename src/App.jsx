@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { SESSION, mkBoard, makeMock } from "./config";
 import { useSession } from "./hooks/useSession";
 import Lobby from "./components/Lobby";
@@ -12,7 +12,12 @@ export default function App() {
   const [marks, setMarks] = useState({});
   const [subs, setSubs] = useState([]);
 
-  const { players: livePl, sendState, isLive } = useSession();
+  const handleReset = useCallback(() => {
+    setMarks({});
+    setSubs([]);
+  }, []);
+
+  const { players: livePl, revealedTopics, sendState, revealTopic, resetGame, isLive } = useSession(handleReset);
   const [mockPl] = useState(() => isLive ? [] : makeMock());
   const allPl = [...mockPl, ...livePl];
 
@@ -46,13 +51,20 @@ export default function App() {
           board={board}
           marks={marks}
           subs={subs}
+          revealedTopics={revealedTopics}
           onMark={handleMark}
           onSubmitBingo={li => setSubs(p => [...p, li])}
           onLeave={() => setScreen("lobby")}
         />
       )}
       {screen === "host" && (
-        <HostView players={allPl} onExit={() => setScreen("lobby")} />
+        <HostView
+          players={allPl}
+          revealedTopics={revealedTopics}
+          onRevealTopic={revealTopic}
+          onReset={resetGame}
+          onExit={() => setScreen("lobby")}
+        />
       )}
     </div>
   );

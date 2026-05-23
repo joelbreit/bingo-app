@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FREE, RATES, LINES, LINE_NAMES, getLines } from "../config";
 import KnowledgeModal from "./KnowledgeModal";
 
-export default function Board({ name, board, marks, subs, onMark, onSubmitBingo, onLeave }) {
+export default function Board({ name, board, marks, subs, revealedTopics, onMark, onSubmitBingo, onLeave }) {
   const [pending, setPending] = useState(null);
   const [selectedRating, setSelectedRating] = useState(null);
 
@@ -11,6 +11,7 @@ export default function Board({ name, board, marks, subs, onMark, onSubmitBingo,
 
   const clickSq = i => {
     if (i === FREE) return;
+    if (revealedTopics && !revealedTopics.includes(board[i])) return;
     setSelectedRating(marks[i] || null);
     setPending(i);
   };
@@ -32,15 +33,16 @@ export default function Board({ name, board, marks, subs, onMark, onSubmitBingo,
           <div className="chip">Playing as <b>{name}</b></div>
         </div>
 
-        {/* Grid */}
         <div className="bingo-grid">
           {board.map((t, i) => {
             const r = marks[i];
             const isFree = i === FREE;
+            const isRevealed = isFree || !revealedTopics || revealedTopics.includes(t);
             const inBingo = bingoSq.has(i);
             const ri = RATES.find(x => x.id === r);
             let cls = "sq";
             if (isFree) cls += " sqF";
+            else if (!isRevealed) cls += " sqL";
             else if (r === "new") cls += " sqN";
             else if (r === "partial") cls += " sqP";
             else if (r === "knew") cls += " sqK";

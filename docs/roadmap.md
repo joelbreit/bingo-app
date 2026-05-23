@@ -35,10 +35,10 @@ Make sessions shareable via link and get the app live.
 
 Give the host tools to manage the game in real time.
 
-- [ ] Host creates a session from the lobby (generates a session ID + optional join code)
-- [ ] Host can reveal topics one-by-one as they're covered (topics stored in DynamoDB session record, pushed to players)
-- [ ] Host can reset the game or clear all marks
-- [ ] Bingo submissions are pushed to the host automatically via WebSocket (no polling)
+- [ ] Host creates a session from the lobby (generates a session ID + optional host code)
+- [x] Host can reveal topics one-by-one as they're covered (topics stored in DynamoDB session record, pushed to players)
+- [x] Host can reset the game or clear all marks
+- [x] Bingo submissions are pushed to the host automatically via WebSocket (no polling)
 
 ## Phase 4 — Configurable Topics
 

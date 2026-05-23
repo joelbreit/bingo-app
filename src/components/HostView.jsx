@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { FREE, SESSION, getLines } from "../config";
+import { FREE, SESSION, TOPICS, getLines } from "../config";
 
-export default function HostView({ players, onExit }) {
+export default function HostView({ players, revealedTopics, onRevealTopic, onReset, onExit }) {
   const [valid, setValid] = useState({});
 
   const total = players.reduce((s, p) => s + Object.keys(p.marks).length, 0);
   const bPl = players.filter(p => getLines(p.marks).length > 0);
+  const revealedSet = new Set(revealedTopics || []);
 
   // Aggregate knowledge per topic across all players
   const topicMap = {};
@@ -36,7 +37,16 @@ export default function HostView({ players, onExit }) {
           </div>
           <div className="stag">Session · {SESSION}</div>
         </div>
-        <button className="btn bg bsm" onClick={onExit}>← Exit</button>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button
+            className="btn bg bsm"
+            style={{ color: "var(--rn)", borderColor: "rgba(239,68,68,.3)" }}
+            onClick={() => window.confirm("Reset the game? This clears all marks and revealed topics.") && onReset()}
+          >
+            ↻ Reset
+          </button>
+          <button className="btn bg bsm" onClick={onExit}>← Exit</button>
+        </div>
       </div>
 
       {/* KPIs */}
@@ -46,14 +56,46 @@ export default function HostView({ players, onExit }) {
           <div className="klbl">Players joined</div>
         </div>
         <div className="kpi">
-          <div className="knum" style={{ color: "var(--rp)" }}>{total}</div>
-          <div className="klbl">Topics marked</div>
+          <div className="knum" style={{ color: "var(--rp)" }}>{revealedSet.size}/{TOPICS.length}</div>
+          <div className="klbl">Topics covered</div>
         </div>
         <div className="kpi">
           <div className="knum" style={{ color: "var(--pi)" }}>{bPl.length}</div>
           <div className="klbl">Bingos claimed</div>
         </div>
       </div>
+
+      {/* Topic Coverage */}
+      <div className="sh">Topic coverage</div>
+      <div className="tpl">
+        {TOPICS.map(topic => {
+          const covered = revealedSet.has(topic);
+          return (
+            <div key={topic} className={`litem${covered ? " done" : ""}`}>
+              <span style={{ color: covered ? "var(--rk)" : "var(--tx)" }}>
+                {covered ? "✓ " : ""}{topic}
+              </span>
+              <button
+                className="btn bg bsm"
+                disabled={covered}
+                style={covered ? { color: "var(--rk)", borderColor: "var(--rk)" } : {}}
+                onClick={() => onRevealTopic(topic)}
+              >
+                {covered ? "Covered" : "Reveal"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      {revealedSet.size < TOPICS.length && (
+        <button
+          className="btn ba bsm"
+          style={{ marginBottom: 24 }}
+          onClick={() => onRevealTopic(TOPICS.filter(t => !revealedSet.has(t)))}
+        >
+          Reveal All ({TOPICS.length - revealedSet.size} remaining)
+        </button>
+      )}
 
       {/* Player Mini-Boards */}
       <div className="sh">Live players</div>
