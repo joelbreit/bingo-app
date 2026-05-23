@@ -57,6 +57,7 @@ Allow the host to customize topics without editing source code.
   - [x] If there is a host code, they will need it in order to rejoin as a host (already in place)
 - [x] Host should be able to edit the topics for a session
 - [x] The players should be able to see other players names
+- [x] Host can delete a session from the Host Dashboard (clears all DynamoDB records, redirects to root lobby)
 
 ## Phase 5 — Polish & UX
 

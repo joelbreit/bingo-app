@@ -58,6 +58,9 @@ All broadcasts send `{ t: "players", players, revealedTopics, topics }` to every
 ### `bingo-list-sessions`
 Triggered on HTTP `GET /sessions`. Scans DynamoDB for session records (`begins_with(connectionId, "session#")`, not expired). For each session, queries the `sessionId-index` GSI with `attribute_exists(playerState)` to count active players. Returns `{ sessions: [{ id, playerCount }] }`.
 
+### `bingo-delete-session`
+Triggered on HTTP `DELETE /sessions/{sessionId}`. Queries the `sessionId-index` GSI to find all DynamoDB records for the session (the `session#<id>` record plus all player connection records), then deletes them all. Players' WebSocket connections are not explicitly closed — they become stale and are pruned on the next broadcast attempt (410 response). Returns `{ ok: true }`.
+
 ## Resource Tagging
 
 Tag **all** resources with:

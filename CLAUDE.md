@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [`docs/cloud.md`](docs/cloud.md) — AWS architecture, DynamoDB schema, SAM template skeleton, logging/tagging standards
 - [`docs/dev.md`](docs/dev.md) — setup, local dev, deploying the backend, viewing AWS resources and logs
 
+**Always update the relevant docs when making changes.** New Lambda functions → `cloud.md`. Completed features → `roadmap.md`. New setup steps or deploy changes → `dev.md`.
+
 ## Commands
 
 ```bash

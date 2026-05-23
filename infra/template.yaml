@@ -175,6 +175,7 @@ Resources:
           - "*"
         AllowMethods:
           - GET
+          - DELETE
           - OPTIONS
         AllowHeaders:
           - "*"
@@ -195,6 +196,23 @@ Resources:
             ApiId: !Ref BingoHttpApi
             Path: /sessions
             Method: GET
+
+  DeleteSessionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: bingo-delete-session
+      Handler: deleteSession.handler
+      CodeUri: src/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+      Events:
+        DeleteSession:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BingoHttpApi
+            Path: /sessions/{sessionId}
+            Method: DELETE
 
 Outputs:
   WebSocketUrl:

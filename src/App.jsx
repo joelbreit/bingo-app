@@ -10,8 +10,14 @@ const isCreator = localStorage.getItem(`bingo-hc-${SESSION}`) !== null;
 const localTopicsStr = localStorage.getItem(`bingo-topics-${SESSION}`);
 const topicsToSet = isCreator && localTopicsStr ? JSON.parse(localTopicsStr) : null;
 
+// Creator redirect lands on /{id}#host — start on the host dashboard and clean the hash
+const startScreen = window.location.hash === "#host" ? "host" : "lobby";
+if (startScreen === "host") {
+  history.replaceState(null, "", window.location.pathname);
+}
+
 export default function App() {
-  const [screen, setScreen] = useState("lobby");
+  const [screen, setScreen] = useState(startScreen);
   const [name, setName] = useState("");
   const [board, setBoard] = useState([]);
   const [marks, setMarks] = useState({});
@@ -22,7 +28,7 @@ export default function App() {
     setSubs([]);
   }, []);
 
-  const { players: livePl, topics, revealedTopics, sendState, revealTopic, resetGame, setSessionTopics, isLive } =
+  const { players: livePl, topics, revealedTopics, sendState, revealTopic, resetGame, setSessionTopics, deleteSession, isLive } =
     useSession(handleReset, topicsToSet);
 
   const [mockPl] = useState(() => isLive ? [] : makeMock());
@@ -76,6 +82,7 @@ export default function App() {
           onRevealTopic={revealTopic}
           onReset={resetGame}
           onSetTopics={setSessionTopics}
+          onDelete={deleteSession}
           onExit={() => setScreen("lobby")}
         />
       )}

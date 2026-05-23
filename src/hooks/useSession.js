@@ -121,5 +121,19 @@ export function useSession(onReset, topicsToSet) {
     }
   }, []);
 
-  return { players, topics, revealedTopics, sendState, revealTopic, resetGame, setSessionTopics, isLive: !!WS_URL };
+  const deleteSession = useCallback(async () => {
+    localStorage.removeItem(`bingo-hc-${SESSION}`);
+    localStorage.removeItem(`bingo-topics-${SESSION}`);
+    const c = conn.current;
+    if (c?.type === "bc") {
+      c.bc.postMessage({ t: "deleted" });
+    }
+    const apiUrl = import.meta.env.VITE_API_URL;
+    if (apiUrl) {
+      try { await fetch(`${apiUrl}/sessions/${SESSION}`, { method: "DELETE" }); } catch (_) {}
+    }
+    window.location.href = "/";
+  }, []);
+
+  return { players, topics, revealedTopics, sendState, revealTopic, resetGame, setSessionTopics, deleteSession, isLive: !!WS_URL };
 }

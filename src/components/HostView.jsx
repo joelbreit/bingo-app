@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { FREE, SESSION, TOPICS as DEFAULT_TOPICS, getLines } from "../config";
 
-export default function HostView({ players, topics, revealedTopics, onRevealTopic, onReset, onSetTopics, onExit }) {
+export default function HostView({ players, topics, revealedTopics, onRevealTopic, onReset, onSetTopics, onDelete, onExit }) {
   const TOPICS = topics || DEFAULT_TOPICS;
   const [valid, setValid] = useState({});
   const [editingTopics, setEditingTopics] = useState(false);
@@ -62,6 +62,13 @@ export default function HostView({ players, topics, revealedTopics, onRevealTopi
             ↻ Reset
           </button>
           <button className="btn bg bsm" onClick={onExit}>← Exit</button>
+          <button
+            className="btn bg bsm"
+            style={{ color: "var(--rn)", borderColor: "rgba(239,68,68,.5)", background: "rgba(239,68,68,.08)" }}
+            onClick={() => window.confirm("Delete this session? This cannot be undone — all players will be disconnected.") && onDelete()}
+          >
+            ✕ Delete session
+          </button>
         </div>
       </div>
 

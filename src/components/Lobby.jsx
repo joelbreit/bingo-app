@@ -54,7 +54,7 @@ export default function Lobby({ name, setName, onJoin, onHostView }) {
     const id = newId.trim() || genId();
     localStorage.setItem(`bingo-hc-${id}`, newCode);
     localStorage.setItem(`bingo-topics-${id}`, JSON.stringify(parsedTopics));
-    window.location.href = `/${id}`;
+    window.location.href = `/${id}#host`;
   };
 
   const handleHostDashboard = () => {
@@ -84,6 +84,26 @@ export default function Lobby({ name, setName, onJoin, onHostView }) {
 
         {AT_ROOT ? (
           <>
+            {/* Existing sessions */}
+            {(sessionsLoading || sessions.length > 0) && (
+              <div className="card">
+                <div className="fl">Active sessions</div>
+                {sessionsLoading ? (
+                  <div style={{ fontSize: 11, color: "var(--mu)" }}>Loading…</div>
+                ) : sessions.map(s => (
+                  <div key={s.id} className="litem">
+                    <div>
+                      <div style={{ fontSize: 12 }}>/{s.id}</div>
+                      <div style={{ fontSize: 9.5, color: "var(--mu)", marginTop: 2 }}>
+                        {s.playerCount} player{s.playerCount !== 1 ? "s" : ""}
+                      </div>
+                    </div>
+                    <a href={`/${s.id}`} className="btn bg bsm" style={{ textDecoration: "none" }}>Join →</a>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="card">
               <div className="fl">Create a session</div>
 
@@ -101,7 +121,7 @@ export default function Lobby({ name, setName, onJoin, onHostView }) {
               </div>
               {idInUse && (
                 <div style={{ color: "var(--rn)", fontSize: 11, marginTop: -6 }}>
-                  Session ID already in use — join or host the existing session below
+                  Session ID already in use — join or host the existing session above
                 </div>
               )}
 
@@ -134,26 +154,6 @@ export default function Lobby({ name, setName, onJoin, onHostView }) {
                 Create Session →
               </button>
             </div>
-
-            {/* Existing sessions */}
-            {(sessionsLoading || sessions.length > 0) && (
-              <div className="card">
-                <div className="fl">Active sessions</div>
-                {sessionsLoading ? (
-                  <div style={{ fontSize: 11, color: "var(--mu)" }}>Loading…</div>
-                ) : sessions.map(s => (
-                  <div key={s.id} className="litem">
-                    <div>
-                      <div style={{ fontSize: 12 }}>/{s.id}</div>
-                      <div style={{ fontSize: 9.5, color: "var(--mu)", marginTop: 2 }}>
-                        {s.playerCount} player{s.playerCount !== 1 ? "s" : ""}
-                      </div>
-                    </div>
-                    <a href={`/${s.id}`} className="btn bg bsm" style={{ textDecoration: "none" }}>Join →</a>
-                  </div>
-                ))}
-              </div>
-            )}
           </>
         ) : (
           <div className="card">
