@@ -4,10 +4,10 @@
 
 Upfront refactoring that will make all subsequent phases faster and less error-prone.
 
-- [ ] **Extract `config.js`** — move `SESSION`, `TOPICS`, `RATES`, `LINES`, `LINE_NAMES`, `FREE` out of `App.jsx` into `src/config.js`. `SESSION` will later become URL-derived; isolating it now makes that a one-line change.
-- [ ] **Abstract the transport layer** — create `src/hooks/useSession.js`, a custom hook that wraps the current `BroadcastChannel` logic and exposes `{ players, sendState }`. Swapping in WebSocket in Phase 1 then only touches this one file.
-- [ ] **Split into components** — extract `Lobby`, `Board`, `HostView`, and `KnowledgeModal` into `src/components/`. Each phase touches a different screen; separate files eliminate merge-style conflicts when editing.
-- [ ] **Extract CSS** — move the CSS template literal to `src/index.css` and import it normally. Keeps component files focused on logic.
+- [x] **Extract `config.js`** — move `SESSION`, `TOPICS`, `RATES`, `LINES`, `LINE_NAMES`, `FREE` out of `App.jsx` into `src/config.js`. `SESSION` will later become URL-derived; isolating it now makes that a one-line change.
+- [x] **Abstract the transport layer** — create `src/hooks/useSession.js`, a custom hook that wraps the current `BroadcastChannel` logic and exposes `{ players, sendState }`. Swapping in WebSocket in Phase 1 then only touches this one file.
+- [x] **Split into components** — extract `Lobby`, `Board`, `HostView`, and `KnowledgeModal` into `src/components/`. Each phase touches a different screen; separate files eliminate merge-style conflicts when editing.
+- [x] **Extract CSS** — move the CSS template literal to `src/index.css` and import it normally. Keeps component files focused on logic.
 
 ## Phase 1 — Real-time Multiplayer Backend
 
